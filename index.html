@@ -2321,21 +2321,50 @@ function setPodToken(t) {
   else localStorage.removeItem(POD_TOKEN_KEY);
 }
 
+// Auto-login: si el URL incluye #t=TOKEN, lo guardamos y limpiamos el hash.
+// Pensado para bookmarks compartibles del tipo
+// https://poderosa-disciplinario.onrender.com/#t=ABC123
+(function captureTokenFromUrl() {
+  const hash = location.hash || "";
+  const m = hash.match(/[#&]t=([^&]+)/);
+  if (m && m[1]) {
+    const t = decodeURIComponent(m[1]);
+    if (t) setPodToken(t);
+    const cleanHash = hash.replace(/[#&]t=[^&]+/, "").replace(/^#$/, "");
+    history.replaceState(null, "", location.pathname + location.search + cleanHash);
+  }
+})();
+
+// Singleton: si llegan varios 401 simultáneos, solo mostramos UN prompt.
+let _pendingTokenPrompt = null;
+async function askForToken(reason) {
+  if (_pendingTokenPrompt) return _pendingTokenPrompt;
+  const msg = reason === "expired"
+    ? "Tu código de acceso no fue aceptado por el servidor.\nPega el código correcto:"
+    : "Para usar el Generador de Cartas necesitas tu código de acceso de Poderosa.\nSe guardará en este navegador (no tendrás que volver a pegarlo).";
+  _pendingTokenPrompt = (async () => {
+    const t = window.prompt(msg, "");
+    if (t && t.trim()) {
+      setPodToken(t.trim());
+      return t.trim();
+    }
+    return null;
+  })();
+  try { return await _pendingTokenPrompt; }
+  finally { _pendingTokenPrompt = null; }
+}
+
 async function podFetch(url, init = {}) {
   const headers = new Headers(init.headers || {});
-  const token = getPodToken();
+  let token = getPodToken();
   if (token) headers.set("X-Pod-Token", token);
-  const res = await fetch(url, { ...init, headers });
+  let res = await fetch(url, { ...init, headers });
   if (res.status === 401) {
     setPodToken("");
-    const fresh = window.prompt(
-      "Esta API requiere un código de acceso de Poderosa.\nPégalo aquí (se guardará localmente en tu navegador).",
-      ""
-    );
-    if (fresh && fresh.trim()) {
-      setPodToken(fresh.trim());
-      headers.set("X-Pod-Token", fresh.trim());
-      return await fetch(url, { ...init, headers });
+    const fresh = await askForToken(token ? "expired" : "missing");
+    if (fresh) {
+      headers.set("X-Pod-Token", fresh);
+      res = await fetch(url, { ...init, headers });
     }
   }
   return res;
@@ -2350,16 +2379,9 @@ const AI_API_BASE = (() => {
   return "http://localhost:8787";
 })();
 
-// Si el server tiene auth activa y aún no hay token guardado, lo pedimos al cargar la app
-(async () => {
-  try {
-    const h = await fetch(`${AI_API_BASE}/api/health`).then(r => r.json()).catch(() => null);
-    if (h && h.authEnabled && !getPodToken()) {
-      const t = window.prompt("Bienvenido. Para usar el Generador con IA necesitas un código de acceso de Poderosa.", "");
-      if (t && t.trim()) setPodToken(t.trim());
-    }
-  } catch { /* offline o aún no listo */ }
-})();
+// El prompt de token es ahora LAZY — solo aparece cuando un endpoint responde 401
+// (en podFetch). Esto evita molestar al usuario al cargar la landing si solo va a
+// mirar el hero del Generador sin entrar.
 
 function setAIStatus(msg, kind) {
   const el = document.getElementById("bf-ai-status");
