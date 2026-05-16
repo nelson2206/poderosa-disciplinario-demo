@@ -10,7 +10,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "22"
       - key: ANTHROPIC_API_KEY
         sync: false           # Se introduce en el dashboard de Render, nunca en git
       - key: ANTHROPIC_MODEL
