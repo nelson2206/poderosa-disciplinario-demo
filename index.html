@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1F4D5C">
+<!-- URL del backend de IA. Para producción (GitHub Pages, etc.), reemplaza por la URL completa, p.ej. "https://poderosa-api.onrender.com". Si va vacío, el front usa el mismo origin (modo local: el server Express sirve este HTML). -->
+<meta name="poderosa-api-base" content="">
 <title>Sistema de Gestión Disciplinaria — Compañía Minera Poderosa</title>
 <meta name="description" content="Aplicativo interno de Compañía Minera Poderosa para la gestión de medidas disciplinarias conforme al TUO D.L. 728. Trazabilidad lista para SUNAFIL.">
 
@@ -743,12 +745,32 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
 
     <!-- Sección VISTA: RRHH -->
     <div class="nav-section nav-grp" data-role="rrhh">Vista RR.HH.</div>
+
+    <!-- Subsección: Casos -->
+    <div class="nav-section nav-grp" data-role="rrhh" style="padding-top:4px;font-size:9px;color:var(--gray-muted);">Casos</div>
     <nav class="nav nav-grp" data-role="rrhh">
       <button class="nav-item" data-action="goto" data-view="seguimiento"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Seguimiento de casos<span class="badge">12</span></button>
       <button class="nav-item" data-action="goto" data-view="nuevo"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>Nuevo incidente</button>
       <button class="nav-item" data-action="goto" data-view="evaluacion"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>Evaluar descargo<span class="badge">3</span></button>
+    </nav>
+
+    <!-- Subsección: Elaboración de cartas (compartida entre rrhh y modo "cartas") -->
+    <div class="nav-section nav-grp" data-role="rrhh cartas" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">📝 Elaboración de cartas</div>
+    <nav class="nav nav-grp" data-role="rrhh cartas">
+      <button class="nav-item" data-action="goto" data-view="plantillas"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M16 3v5h5M8 13h8M8 17h5"/></svg></span>Plantillas</button>
       <button class="nav-item" data-action="goto" data-view="carta"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></span>Generar Carta 1</button>
       <button class="nav-item" data-action="goto" data-view="carta2"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M10 16l2 2 4-4"/></svg></span>Generar Carta 2</button>
+    </nav>
+
+    <!-- Subsección: Seguimiento de cartas (compartida entre rrhh y modo "cartas") -->
+    <div class="nav-section nav-grp" data-role="rrhh cartas" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">📜 Seguimiento de cartas</div>
+    <nav class="nav nav-grp" data-role="rrhh cartas">
+      <button class="nav-item" data-action="goto" data-view="historial"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Cartas creadas</button>
+    </nav>
+
+    <!-- Subsección: Configuración (visible solo para RR.HH.) -->
+    <div class="nav-section nav-grp" data-role="rrhh" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">Configuración</div>
+    <nav class="nav nav-grp" data-role="rrhh">
       <button class="nav-item" data-action="goto" data-view="reglamentos"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/><line x1="9" y1="7" x2="16" y2="7"/><line x1="9" y1="11" x2="16" y2="11"/></svg></span>Reglamentos<span class="badge">10</span></button>
       <button class="nav-item" data-action="goto" data-view="parametros"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Parámetros</button>
     </nav>
@@ -817,7 +839,34 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
           <div class="rl-hero">
             <img src="data:image/png;base64,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" alt="Poderosa">
             <h1>Sistema de Gestión Disciplinaria</h1>
-            <p>Selecciona tu rol para iniciar la sesión y ver el sistema tal como lo experimentaría cada usuario.</p>
+            <p>Plataforma de Compañía Minera Poderosa para el flujo disciplinario completo bajo D.L. 728, RIT y prácticas SUNAFIL.</p>
+          </div>
+
+          <!-- HERO: Generador de cartas con IA (destacado, entrada directa) -->
+          <div class="generator-hero" role="button" tabindex="0" data-action="enter-role" data-role="cartas" style="margin:18px 0 28px;background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);color:var(--white);border-radius:14px;padding:28px 32px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;box-shadow:0 8px 28px rgba(31,77,92,.25);cursor:pointer;border:2px solid var(--gold);">
+            <div style="background:var(--gold);width:72px;height:72px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 13l2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div style="font-family:var(--font-head);font-size:11px;letter-spacing:2px;color:var(--gold-light);text-transform:uppercase;margin-bottom:6px;">✨ Generador con IA · Claude</div>
+              <h2 style="margin:0 0 8px;font-family:var(--font-head);font-size:26px;letter-spacing:-.3px;color:var(--white);">Generador de cartas disciplinarias</h2>
+              <p style="margin:0;color:var(--gold-light);font-size:14px;line-height:1.5;">Entra directo a redactar Cartas 1 y 2 con IA, gestionar plantillas validadas por Legal y revisar el historial — sin el flujo completo de casos.</p>
+              <ul style="margin:10px 0 0;padding-left:18px;color:var(--white);font-size:12.5px;line-height:1.7;opacity:.92;">
+                <li>Carta 1 (Imputación) + Carta 2 (Amonestación / Suspensión / Despido / Desistimiento)</li>
+                <li>Biblioteca de plantillas Legal (.docx, .pdf, .txt) con extracción automática</li>
+                <li>Historial trazable para SUNAFIL — borrador → revisada → notificada</li>
+              </ul>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+              <span style="font-family:var(--font-head);font-size:13px;letter-spacing:1.5px;background:var(--gold);color:var(--teal-dark);padding:10px 16px;border-radius:8px;text-transform:uppercase;white-space:nowrap;">Entrar al generador →</span>
+              <span style="font-size:10.5px;color:var(--gold-light);">Sin login · Demo</span>
+            </div>
+          </div>
+
+          <div style="text-align:center;margin:6px 0 14px;">
+            <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:2px;color:var(--gray-strong);text-transform:uppercase;margin-bottom:4px;">— o —</div>
+            <div style="font-family:var(--font-head);font-size:15px;color:var(--teal);">Explorar el sistema completo por rol</div>
+            <div style="font-size:12px;color:var(--gray-muted);margin-top:4px;">Cada rol ve solo las pantallas que le corresponden, como en producción.</div>
           </div>
 
           <div class="role-cards">
@@ -1283,8 +1332,20 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="field"><label for="bf-plazo">Plazo de descargo</label><select id="bf-plazo" data-bind="plazo"><option>seis (6) días naturales</option><option>nueve (9) días naturales</option></select></div>
             <div class="field"><label for="bf-conducta">Conducta imputada</label><textarea id="bf-conducta" data-bind="conducta">sin portar el equipo de protección personal completo (respirador)</textarea></div>
             <div class="field"><label for="bf-anexos">Anexos</label><textarea id="bf-anexos" data-bind="anexos">Reporte del supervisor de turno · Registro CCTV área flotación · Cargo de notificación con acuse de recibo</textarea></div>
+            <div class="field"><label for="bf-hechos-libre">Descripción libre del incidente (opcional · para IA)</label><textarea id="bf-hechos-libre" rows="4" placeholder="Describe en tus palabras lo ocurrido: fecha, hora, lugar, qué hizo o dejó de hacer el trabajador, quién lo observó… La IA lo transformará en redacción legal.">El 28/04/2026 a las 14:30, durante el cambio de turno en flotación (Marañón), el operador Juan Pérez Rojas ingresó al área operativa sin respirador. Lo observó el supervisor de turno y dos compañeros del mismo equipo lo confirmaron.</textarea></div>
+            <div class="field"><label for="bf-template">Plantilla base (opcional)</label>
+              <select id="bf-template" data-template-filter="carta1,carta1-amonestacion">
+                <option value="">— Plantilla canónica del sistema —</option>
+              </select>
+              <div style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Sube plantillas en <em>Parámetros → Plantillas</em>. Si seleccionas una, la IA la usará como referencia de tono y estructura.</div>
+            </div>
 
             <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn primary" id="bf-ai-generate" style="flex:1;background:var(--gold);">✨ Redactar con IA</button>
+            </div>
+            <div id="bf-ai-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
+            <div id="bf-ai-warnings" style="display:none;margin-top:10px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
               <button class="btn" data-action="open-modal" data-modal="modal-expediente" style="flex:1;">Vista previa PDF</button>
               <button class="btn primary" data-action="open-modal" data-modal="modal-notificar" style="flex:1;">Notificar</button>
             </div>
@@ -1299,19 +1360,19 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <img src="data:image/png;base64,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" alt="Logo Poderosa">
               <div class="lh-meta"><div>Compañía Minera Poderosa S.A.</div><div>RUC 20137025354</div><div>Gerencia de RR.HH. — Marañón</div></div>
             </div>
-            <p style="text-align:right;font-size:12.5px;">Trujillo, 29 de abril de 2026</p>
-            <p style="text-align:right;font-size:12.5px;">Carta N° <strong>RH-CD-2026-047/01</strong></p>
-            <p style="margin-top:18px;"><strong>Señor</strong><br><strong>JUAN PÉREZ ROJAS</strong><br>DNI 70 234 567<br>Operador de flotación — Unidad Marañón<br>Presente.—</p>
-            <p class="ref">Asunto: Imputación de falta y otorgamiento de plazo para descargo</p>
-            <p>De nuestra consideración:</p>
-            <p>Por la presente le comunicamos que, conforme a lo investigado por la supervisión de turno y la información recabada hasta la fecha, usted <mark>habría incurrido</mark> en una conducta que podría constituir falta laboral, conforme al siguiente detalle:</p>
-            <p><strong>Hechos imputados.</strong> El día <mark>28 de abril de 2026, a las 14:30 horas</mark>, durante el cambio de turno en el área de flotación de la planta concentradora de la Unidad Marañón, usted habría ingresado a la zona operativa <mark data-bind-out="conducta">sin portar el equipo de protección personal completo (respirador)</mark>, conducta observada por el supervisor de turno y confirmada por dos compañeros del mismo equipo.</p>
-            <p><strong>Norma aplicable.</strong> Los hechos descritos podrían configurar una falta grave conforme al <mark data-bind-out="falta-norma">Art. 25 incisos a) y h) del TUO del D.L. N° 728</mark>, concordante con el Reglamento Interno de Trabajo de la Compañía.</p>
-            <p><strong>Derecho de defensa.</strong> Sin perjuicio de lo anterior, le otorgamos el plazo de <mark data-bind-out="plazo">seis (6) días naturales</mark> contados desde la recepción de la presente, para que presente por escrito sus descargos y pruebas, conforme al Art. 42 del TUO del D.L. N° 728.</p>
-            <p>Su descargo podrá ser presentado a través del portal interno habilitado, o por escrito en la oficina de RR.HH. de la Unidad Marañón. <strong>Esta carta no constituye sanción alguna</strong> y será evaluada de manera integral, junto con su descargo y las pruebas correspondientes, antes de tomar decisión final.</p>
-            <p>Atentamente,</p>
-            <div class="signature"><div class="line"></div><strong>María Salas Rivera</strong><br><span style="color:#666;">Jefa de RR.HH. — Unidad Marañón</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
-            <div class="annex"><strong>Anexos:</strong> <span data-bind-out="anexos">Reporte del supervisor de turno · Registro CCTV área flotación · Cargo de notificación con acuse de recibo</span>.</div>
+            <p id="pp-fecha" style="text-align:right;font-size:12.5px;">Trujillo, 29 de abril de 2026</p>
+            <p style="text-align:right;font-size:12.5px;">Carta N° <strong id="pp-numero">RH-CD-2026-047/01</strong></p>
+            <p id="pp-destinatario" style="margin-top:18px;"><strong>Señor</strong><br><strong>JUAN PÉREZ ROJAS</strong><br>DNI 70 234 567<br>Operador de flotación — Unidad Marañón<br>Presente.—</p>
+            <p class="ref" id="pp-asunto">Asunto: Imputación de falta y otorgamiento de plazo para descargo</p>
+            <p id="pp-encabezado">De nuestra consideración:</p>
+            <p id="pp-intro">Por la presente le comunicamos que, conforme a lo investigado por la supervisión de turno y la información recabada hasta la fecha, usted <mark>habría incurrido</mark> en una conducta que podría constituir falta laboral, conforme al siguiente detalle:</p>
+            <p><strong>Hechos imputados.</strong> <span id="pp-hechos">El día <mark>28 de abril de 2026, a las 14:30 horas</mark>, durante el cambio de turno en el área de flotación de la planta concentradora de la Unidad Marañón, usted habría ingresado a la zona operativa <mark data-bind-out="conducta">sin portar el equipo de protección personal completo (respirador)</mark>, conducta observada por el supervisor de turno y confirmada por dos compañeros del mismo equipo.</span></p>
+            <p><strong>Norma aplicable.</strong> <span id="pp-norma">Los hechos descritos podrían configurar una falta grave conforme al <mark data-bind-out="falta-norma">Art. 25 incisos a) y h) del TUO del D.L. N° 728</mark>, concordante con el Reglamento Interno de Trabajo de la Compañía.</span></p>
+            <p><strong>Derecho de defensa.</strong> <span id="pp-defensa">Sin perjuicio de lo anterior, le otorgamos el plazo de <mark data-bind-out="plazo">seis (6) días naturales</mark> contados desde la recepción de la presente, para que presente por escrito sus descargos y pruebas, conforme al Art. 42 del TUO del D.L. N° 728.</span></p>
+            <p id="pp-canal">Su descargo podrá ser presentado a través del portal interno habilitado, o por escrito en la oficina de RR.HH. de la Unidad Marañón. <strong>Esta carta no constituye sanción alguna</strong> y será evaluada de manera integral, junto con su descargo y las pruebas correspondientes, antes de tomar decisión final.</p>
+            <p id="pp-despedida">Atentamente,</p>
+            <div class="signature"><div class="line"></div><strong id="pp-firma-nombre">María Salas Rivera</strong><br><span id="pp-firma-cargo" style="color:#666;">Jefa de RR.HH. — Unidad Marañón</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
+            <div class="annex"><strong>Anexos:</strong> <span id="pp-anexos" data-bind-out="anexos">Reporte del supervisor de turno · Registro CCTV área flotación · Cargo de notificación con acuse de recibo</span>.</div>
           </div>
         </div>
       </section>
@@ -1324,7 +1385,6 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
           <button class="param-tab active" data-ptab="faltas">Catálogo de faltas</button>
           <button class="param-tab" data-ptab="sanc">Sancionario</button>
           <button class="param-tab" data-ptab="plazos">Plazos</button>
-          <button class="param-tab" data-ptab="plantillas">Plantillas</button>
           <button class="param-tab" data-ptab="unidades">Unidades & supervisores</button>
         </div>
 
@@ -1370,20 +1430,6 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <tr><td>Evaluación motivada</td><td>3 días hábiles</td><td>5 días hábiles</td><td>Política interna</td><td><button class="edit-btn">Editar</button></td></tr>
               <tr><td>Decisión Superintendente</td><td>2 días hábiles</td><td>3 días hábiles</td><td>Política interna</td><td><button class="edit-btn">Editar</button></td></tr>
               <tr><td>Notificación de Carta 2</td><td>Inmediata tras aprobación</td><td>—</td><td>D.L. 728 Art. 31</td><td><button class="edit-btn">Editar</button></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pane: Plantillas -->
-        <div class="param-pane" data-ptab="plantillas">
-          <table class="param-table">
-            <thead><tr><th>Nombre</th><th>Versión</th><th>Validada por</th><th>Última actualización</th><th></th></tr></thead>
-            <tbody>
-              <tr><td>📄 Carta 1 — Imputación (estándar)</td><td><strong>v3.2</strong></td><td>Legal · Andrés León</td><td>14 Mar 2026</td><td><button class="edit-btn">Ver</button></td></tr>
-              <tr><td>📄 Carta 2 — Sanción (suspensión)</td><td><strong>v2.5</strong></td><td>Legal · Andrés León</td><td>14 Mar 2026</td><td><button class="edit-btn">Ver</button></td></tr>
-              <tr><td>📄 Carta 2 — Sanción (despido)</td><td><strong>v2.1</strong></td><td>Legal · Estudio externo</td><td>02 Feb 2026</td><td><button class="edit-btn">Ver</button></td></tr>
-              <tr><td>📄 Carta de desistimiento</td><td><strong>v1.8</strong></td><td>Legal · Andrés León</td><td>14 Mar 2026</td><td><button class="edit-btn">Ver</button></td></tr>
-              <tr><td>📄 Acta de notificación</td><td><strong>v2.0</strong></td><td>Legal · Andrés León</td><td>14 Mar 2026</td><td><button class="edit-btn">Ver</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -1509,8 +1555,23 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="field"><label for="c2-norma">Norma aplicada</label>
               <input id="c2-norma" data-bind="c2-norma" value="Art. 25 inc. a) D.L. 728 · Art. 8.4.b RIT · Sancionario interno R-2026.01">
             </div>
+            <div class="field"><label for="c2-descargo">Descargo del trabajador (resumen)</label>
+              <textarea id="c2-descargo" rows="3" placeholder="Pega o resume aquí el descargo. La IA debe abordarlo explícitamente en la motivación.">El trabajador reconoce el incidente pero alega que el área de mantenimiento no había repuesto los respiradores en el dispensario esa mañana. Adjunta foto del dispensario vacío y reporte interno #4521.</textarea>
+            </div>
+            <div class="field"><label for="c2-template">Plantilla base (opcional)</label>
+              <select id="c2-template" data-template-filter="carta2-amonestacion,carta2-suspension,carta2-despido,desistimiento">
+                <option value="">— Plantilla canónica del sistema —</option>
+              </select>
+              <div style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">El selector se filtra por el tipo de decisión elegido arriba.</div>
+            </div>
 
             <div style="display:flex;gap:8px;margin-top:14px;">
+              <button class="btn primary" id="c2-ai-generate" style="flex:1;background:var(--gold);">✨ Redactar con IA</button>
+            </div>
+            <div id="c2-ai-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
+            <div id="c2-ai-warnings" style="display:none;margin-top:10px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
+
+            <div style="display:flex;gap:8px;margin-top:10px;">
               <button class="btn" onclick="window.print()" style="flex:1;">Imprimir</button>
               <button class="btn primary" data-action="goto" data-view="aprobacion" style="flex:1;">Enviar a aprobación →</button>
             </div>
@@ -1525,19 +1586,19 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <img src="data:image/png;base64,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" alt="Logo Poderosa">
               <div class="lh-meta"><div>Compañía Minera Poderosa S.A.</div><div>RUC 20137025354</div><div>Gerencia de RR.HH. — Marañón</div></div>
             </div>
-            <p style="text-align:right;font-size:12.5px;">Trujillo, 6 de mayo de 2026</p>
-            <p style="text-align:right;font-size:12.5px;">Carta N° <strong>RH-CD-2026-047/02</strong></p>
-            <p style="margin-top:18px;"><strong>Señor</strong><br><strong>JUAN PÉREZ ROJAS</strong><br>DNI 70 234 567<br>Operador de flotación — Unidad Marañón<br>Presente.—</p>
-            <p class="ref">Asunto: Decisión final — <span data-bind-out="c2-tipo">Amonestación escrita</span></p>
-            <p>De nuestra consideración:</p>
-            <p>Habiéndose iniciado el procedimiento disciplinario mediante Carta de Imputación N° RH-CD-2026-047/01 del 29 de abril de 2026, recibido su descargo el 2 de mayo de 2026, y luego de la evaluación motivada de los hechos, descargos y pruebas, le comunicamos lo siguiente:</p>
-            <p><strong>Decisión.</strong> Por la presente se le aplica <mark data-bind-out="c2-detalle">Amonestación escrita por incumplimiento de protocolo de seguridad EPP, con observación al expediente personal.</mark></p>
-            <p><strong>Motivación.</strong> <span data-bind-out="c2-motiva">Habiendo evaluado el descargo del trabajador y la evidencia recabada, se constata que la falta es atribuible parcialmente a una falla de reposición del área de mantenimiento (reporte #4521). No obstante, el trabajador no comunicó de inmediato a su supervisor antes de ingresar al área operativa, lo cual configura una falta menor del protocolo de seguridad. Considerando antigüedad, ausencia de antecedentes y conducta atenuante, se aplica amonestación escrita conforme al sancionario interno.</span></p>
-            <p><strong>Norma aplicada.</strong> <mark data-bind-out="c2-norma">Art. 25 inc. a) D.L. 728 · Art. 8.4.b RIT · Sancionario interno R-2026.01</mark>.</p>
-            <p>Conforme al Art. 31 del TUO del D.L. N° 728, esta decisión podrá ser impugnada en sede judicial dentro del plazo legal correspondiente.</p>
-            <p>Atentamente,</p>
-            <div class="signature"><div class="line"></div><strong>Carlos Ramírez Ortega</strong><br><span style="color:#666;">Superintendente — Unidad Marañón</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
-            <div class="annex"><strong>Copia:</strong> Expediente del trabajador · RR.HH. · Legal · Archivo SUNAFIL.</div>
+            <p id="pp2-fecha" style="text-align:right;font-size:12.5px;">Trujillo, 6 de mayo de 2026</p>
+            <p style="text-align:right;font-size:12.5px;">Carta N° <strong id="pp2-numero">RH-CD-2026-047/02</strong></p>
+            <p id="pp2-destinatario" style="margin-top:18px;"><strong>Señor</strong><br><strong>JUAN PÉREZ ROJAS</strong><br>DNI 70 234 567<br>Operador de flotación — Unidad Marañón<br>Presente.—</p>
+            <p class="ref" id="pp2-asunto">Asunto: Decisión final — <span data-bind-out="c2-tipo">Amonestación escrita</span></p>
+            <p id="pp2-encabezado">De nuestra consideración:</p>
+            <p id="pp2-intro">Habiéndose iniciado el procedimiento disciplinario mediante Carta de Imputación N° RH-CD-2026-047/01 del 29 de abril de 2026, recibido su descargo el 2 de mayo de 2026, y luego de la evaluación motivada de los hechos, descargos y pruebas, le comunicamos lo siguiente:</p>
+            <p><strong>Decisión.</strong> <span id="pp2-decision"><mark data-bind-out="c2-detalle">Amonestación escrita por incumplimiento de protocolo de seguridad EPP, con observación al expediente personal.</mark></span></p>
+            <p><strong>Motivación.</strong> <span id="pp2-motivacion" data-bind-out="c2-motiva">Habiendo evaluado el descargo del trabajador y la evidencia recabada, se constata que la falta es atribuible parcialmente a una falla de reposición del área de mantenimiento (reporte #4521). No obstante, el trabajador no comunicó de inmediato a su supervisor antes de ingresar al área operativa, lo cual configura una falta menor del protocolo de seguridad. Considerando antigüedad, ausencia de antecedentes y conducta atenuante, se aplica amonestación escrita conforme al sancionario interno.</span></p>
+            <p><strong>Norma aplicada.</strong> <span id="pp2-norma"><mark data-bind-out="c2-norma">Art. 25 inc. a) D.L. 728 · Art. 8.4.b RIT · Sancionario interno R-2026.01</mark></span>.</p>
+            <p id="pp2-parrafo-adicional">Conforme al Art. 31 del TUO del D.L. N° 728, esta decisión podrá ser impugnada en sede judicial dentro del plazo legal correspondiente.</p>
+            <p id="pp2-despedida">Atentamente,</p>
+            <div class="signature"><div class="line"></div><strong id="pp2-firma-nombre">Carlos Ramírez Ortega</strong><br><span id="pp2-firma-cargo" style="color:#666;">Superintendente — Unidad Marañón</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
+            <div class="annex"><strong>Copia:</strong> <span id="pp2-copia">Expediente del trabajador · RR.HH. · Legal · Archivo SUNAFIL</span>.</div>
           </div>
         </div>
       </section>
@@ -1610,6 +1671,82 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <tr><th>Documento</th><th>Categoría</th><th>Versión</th><th>Vigente desde</th><th>Vigencia</th><th>Cargado por</th><th></th></tr>
             </thead>
             <tbody id="reg-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: PLANTILLAS (biblioteca) ===== -->
+      <section class="view" id="view-plantillas">
+        <div class="greeting"><h1>Plantillas de cartas</h1><p>Biblioteca validada por Legal. La IA usará estas plantillas como base de tono y estructura al redactar nuevas cartas. Formatos: <code>.docx</code>, <code>.pdf</code>, <code>.txt</code>, <code>.md</code>, <code>.html</code> (máx. 10 MB).</p></div>
+
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><h2>Cargar nueva plantilla</h2></div>
+          <div style="padding:14px 18px;">
+            <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+              <div class="field" style="margin:0;"><label for="tpl-file">Archivo</label><input type="file" id="tpl-file" accept=".docx,.pdf,.txt,.md,.html,.htm"></div>
+              <div class="field" style="margin:0;"><label for="tpl-type">Tipo de carta</label>
+                <select id="tpl-type">
+                  <option value="carta1">Carta 1 — Imputación (preaviso despido)</option>
+                  <option value="carta1-amonestacion">Carta 1 — Imputación a sanción menor</option>
+                  <option value="carta2-amonestacion">Carta 2 — Amonestación escrita</option>
+                  <option value="carta2-suspension">Carta 2 — Suspensión sin goce</option>
+                  <option value="carta2-despido">Carta 2 — Despido</option>
+                  <option value="flagrante">Falta flagrante</option>
+                  <option value="desistimiento">Desistimiento</option>
+                  <option value="acta-notificacion">Acta de notificación</option>
+                  <option value="levantamiento">Levantamiento de medida</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="field" style="margin:0;"><label for="tpl-label">Etiqueta (opcional)</label><input type="text" id="tpl-label" placeholder="Ej: Carta 1 — Marañón v3.2"></div>
+              <div class="field" style="margin:0;"><label for="tpl-version">Versión (opcional)</label><input type="text" id="tpl-version" placeholder="v3.2"></div>
+              <button class="btn primary" id="tpl-upload-btn" style="height:36px;">⬆ Subir</button>
+            </div>
+            <div id="tpl-upload-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <div class="card-header"><h2>Plantillas cargadas</h2><span id="tpl-count" style="margin-left:auto;font-size:11px;color:var(--gray-muted);">0 plantillas</span></div>
+          <table class="param-table" id="tpl-table">
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Versión</th><th>Subida</th><th>Tamaño</th><th>Acciones</th></tr></thead>
+            <tbody id="tpl-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Cargando plantillas…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: CARTAS CREADAS (historial) ===== -->
+      <section class="view" id="view-historial">
+        <div class="greeting"><h1>Cartas creadas</h1><p>Trazabilidad SUNAFIL-ready. Cada generación se guarda con su input, output, plantilla usada y modelo. Filtra por caso o trabajador, y cambia el estado a medida que avanza el flujo (borrador → revisada → notificada).</p></div>
+
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><h2>Filtros</h2></div>
+          <div style="padding:14px 18px;display:grid;grid-template-columns:1.4fr 1fr auto auto;gap:12px;align-items:end;">
+            <div class="field" style="margin:0;"><label for="h-case">Caso (opcional)</label><input id="h-case" type="text" placeholder="CD-2026-047"></div>
+            <div class="field" style="margin:0;"><label for="h-tipo">Tipo de carta</label>
+              <select id="h-tipo">
+                <option value="">Todas</option>
+                <option value="carta1">Carta 1 — Imputación</option>
+                <option value="carta1-amonestacion">Carta 1 — Sanción menor</option>
+                <option value="carta2-amonestacion">Carta 2 — Amonestación</option>
+                <option value="carta2-suspension">Carta 2 — Suspensión</option>
+                <option value="carta2-despido">Carta 2 — Despido</option>
+              </select>
+            </div>
+            <button class="btn primary" id="h-refresh">Refrescar</button>
+            <span id="h-storage-pill" style="font-size:10.5px;font-family:var(--font-head);letter-spacing:1.4px;background:var(--cream);color:var(--teal);border:1px solid var(--cream-dark);padding:6px 10px;border-radius:14px;text-transform:uppercase;">storage: —</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px;">
+          <div class="card-header"><h2>Cartas registradas</h2><span id="h-count" style="margin-left:auto;font-size:11px;color:var(--gray-muted);">0 registros</span></div>
+          <table class="cases-table">
+            <thead><tr><th>Fecha</th><th>Caso</th><th>Trabajador · Unidad</th><th>Tipo</th><th>Plantilla</th><th>Estado</th><th>Modelo · ms</th><th>Acciones</th></tr></thead>
+            <tbody id="h-tbody">
+              <tr><td colspan="8" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Cargando…</td></tr>
+            </tbody>
           </table>
         </div>
       </section>
@@ -2034,12 +2171,18 @@ function goView(name) {
 
 // ====== Role mode (filtra sidebar para que cada usuario sólo vea sus vistas) ======
 function applyRoleFilter(role) {
-  // Mostrar sólo nav-grp del rol activo (los demás se ocultan)
+  // Cada nav-grp puede declarar uno o varios roles (space-separated). Mostrar si el rol activo está incluido.
   document.querySelectorAll(".nav-grp").forEach(n => {
-    n.style.display = n.dataset.role === role ? "" : "none";
+    const roles = (n.dataset.role || "").split(/\s+/).filter(Boolean);
+    n.style.display = roles.includes(role) ? "" : "none";
   });
-  // La sección "Soporte" (Reportes) sólo Super y RR.HH.; ocultar para Trabajador
-  document.querySelectorAll(".nav-soporte").forEach(el => { el.style.display = role === "work" ? "none" : ""; });
+  // "Soporte" (Reportes): visible para super/rrhh; oculto para work y para el modo cartas.
+  document.querySelectorAll(".nav-soporte").forEach(el => {
+    el.style.display = (role === "work" || role === "cartas") ? "none" : "";
+  });
+  // En modo "cartas" se oculta el role-switcher del topbar (no aplica)
+  const roleSwitcher = document.querySelector(".role-switcher");
+  if (roleSwitcher) roleSwitcher.style.display = role === "cartas" ? "none" : "";
   // Actualizar avatar y rol en sidebar-user
   const u = userMap[role];
   const av = document.getElementById("user-av");
@@ -2051,12 +2194,13 @@ function applyRoleFilter(role) {
   document.querySelectorAll(".role-pill").forEach(x => x.classList.toggle("active", x.dataset.role === role));
 }
 const userMapEarly = {
-  super: { av: "CR", name: "Carlos Ramírez", role: "Superintendente · Marañón", avClass: "" },
-  rrhh: { av: "MS", name: "María Salas",     role: "Jefa RR.HH. · Marañón",      avClass: "rrhh" },
-  work: { av: "JP", name: "Juan Pérez R.",    role: "Op. flotación · Marañón",   avClass: "work" },
+  super:  { av: "CR", name: "Carlos Ramírez",  role: "Superintendente · Marañón", avClass: "" },
+  rrhh:   { av: "MS", name: "María Salas",      role: "Jefa RR.HH. · Marañón",      avClass: "rrhh" },
+  work:   { av: "JP", name: "Juan Pérez R.",    role: "Op. flotación · Marañón",   avClass: "work" },
+  cartas: { av: "IA", name: "Generador IA",     role: "Modo cartas · Claude",       avClass: "rrhh" },
 };
 const userMap = userMapEarly;
-const defaultByRole = { super: "dashboard", rrhh: "seguimiento", work: "login" };
+const defaultByRole = { super: "dashboard", rrhh: "seguimiento", work: "login", cartas: "plantillas" };
 
 function enterRole(role) {
   document.body.classList.remove("role-select-mode");
@@ -2168,6 +2312,601 @@ function bindLive() {
   });
 }
 bindLive();
+
+// ====== Token de acceso (header X-Pod-Token) ======
+const POD_TOKEN_KEY = "pod_api_token";
+function getPodToken() { return localStorage.getItem(POD_TOKEN_KEY) || ""; }
+function setPodToken(t) {
+  if (t) localStorage.setItem(POD_TOKEN_KEY, t);
+  else localStorage.removeItem(POD_TOKEN_KEY);
+}
+
+async function podFetch(url, init = {}) {
+  const headers = new Headers(init.headers || {});
+  const token = getPodToken();
+  if (token) headers.set("X-Pod-Token", token);
+  const res = await fetch(url, { ...init, headers });
+  if (res.status === 401) {
+    setPodToken("");
+    const fresh = window.prompt(
+      "Esta API requiere un código de acceso de Poderosa.\nPégalo aquí (se guardará localmente en tu navegador).",
+      ""
+    );
+    if (fresh && fresh.trim()) {
+      setPodToken(fresh.trim());
+      headers.set("X-Pod-Token", fresh.trim());
+      return await fetch(url, { ...init, headers });
+    }
+  }
+  return res;
+}
+
+// ====== Redactar Carta 1 con IA ======
+const AI_API_BASE = (() => {
+  const meta = document.querySelector('meta[name="poderosa-api-base"]');
+  const fromMeta = meta && meta.content ? meta.content.replace(/\/+$/, "") : "";
+  if (fromMeta) return fromMeta;
+  if (location.origin.startsWith("http")) return location.origin;
+  return "http://localhost:8787";
+})();
+
+// Si el server tiene auth activa y aún no hay token guardado, lo pedimos al cargar la app
+(async () => {
+  try {
+    const h = await fetch(`${AI_API_BASE}/api/health`).then(r => r.json()).catch(() => null);
+    if (h && h.authEnabled && !getPodToken()) {
+      const t = window.prompt("Bienvenido. Para usar el Generador con IA necesitas un código de acceso de Poderosa.", "");
+      if (t && t.trim()) setPodToken(t.trim());
+    }
+  } catch { /* offline o aún no listo */ }
+})();
+
+function setAIStatus(msg, kind) {
+  const el = document.getElementById("bf-ai-status");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.color = kind === "error" ? "var(--terracotta)" : kind === "ok" ? "var(--green)" : "var(--gray-muted)";
+}
+
+function showAIWarnings(warnings) {
+  const el = document.getElementById("bf-ai-warnings");
+  if (!el) return;
+  if (!warnings || warnings.length === 0) { el.style.display = "none"; el.innerHTML = ""; return; }
+  el.style.display = "block";
+  el.innerHTML = "<strong>⚠️ Advertencias del modelo:</strong><ul style='margin:6px 0 0 18px;padding:0;'>"
+    + warnings.map(w => `<li>${w.replace(/</g, "&lt;")}</li>`).join("")
+    + "</ul>";
+}
+
+function hydrateCartaPreview(carta) {
+  const setText = (id, val) => { const n = document.getElementById(id); if (n && val != null) n.textContent = val; };
+  const setHTML = (id, html) => { const n = document.getElementById(id); if (n && html != null) n.innerHTML = html; };
+  setText("pp-fecha", "Trujillo, " + (carta.fecha || ""));
+  setText("pp-numero", carta.numeroCarta || "");
+  if (carta.destinatario) {
+    const d = carta.destinatario;
+    setHTML("pp-destinatario", `<strong>${d.tratamiento || ""}</strong><br><strong>${(d.nombre || "").toUpperCase()}</strong><br>DNI ${d.dni || ""}<br>${d.puestoUnidad || ""}<br>Presente.—`);
+  }
+  setText("pp-asunto", "Asunto: " + (carta.asunto || ""));
+  if (carta.cuerpo) {
+    setText("pp-encabezado", carta.cuerpo.encabezado);
+    setText("pp-intro", carta.cuerpo.introduccion);
+    setText("pp-hechos", carta.cuerpo.hechosImputados);
+    setText("pp-norma", carta.cuerpo.normaAplicable);
+    setText("pp-defensa", carta.cuerpo.derechoDefensa);
+    const canal = (carta.cuerpo.canalDescargo || "") + " ";
+    const cierre = carta.cuerpo.cierreNoSancion || "";
+    setHTML("pp-canal", `${canal}<strong>${cierre}</strong>`);
+    setText("pp-despedida", carta.cuerpo.despedida || "Atentamente,");
+  }
+  if (carta.firma) {
+    setText("pp-firma-nombre", carta.firma.nombre);
+    setText("pp-firma-cargo", carta.firma.cargo);
+  }
+  if (Array.isArray(carta.anexos)) {
+    setText("pp-anexos", carta.anexos.join(" · "));
+  }
+}
+
+function gatherCarta1Input() {
+  const conducta = (document.getElementById("bf-conducta") || {}).value || "";
+  const norma = (document.getElementById("bf-falta") || {}).value || "";
+  const plazo = (document.getElementById("bf-plazo") || {}).value || "seis (6) días naturales";
+  const anexosRaw = (document.getElementById("bf-anexos") || {}).value || "";
+  const hechosLibre = (document.getElementById("bf-hechos-libre") || {}).value || "";
+  const templateId = (document.getElementById("bf-template") || {}).value || "";
+  return {
+    caseId: "CD-2026-047",
+    trabajador: {
+      nombre: "Juan Pérez Rojas",
+      dni: "70 234 567",
+      puestoUnidad: "Operador de flotación — Unidad Marañón",
+      unidad: "Marañón"
+    },
+    faltaTipificada: "Uso indebido de EPP",
+    normaAplicable: norma,
+    conducta: hechosLibre.trim() || conducta,
+    fechaHechoISO: "2026-04-28T14:30:00-05:00",
+    lugar: "Área de flotación — Planta concentradora · Unidad Marañón",
+    plazoDescargo: plazo,
+    anexos: anexosRaw.split(/\s*·\s*|\s*\n\s*/).map(s => s.trim()).filter(Boolean),
+    firma: { nombre: "María Salas Rivera", cargo: "Jefa de RR.HH. — Unidad Marañón" },
+    numeroCarta: "RH-CD-2026-047/01",
+    fechaCartaISO: new Date().toISOString().slice(0, 10),
+    templateId: templateId || undefined
+  };
+}
+
+async function generateCartaWithAI() {
+  const btn = document.getElementById("bf-ai-generate");
+  if (!btn) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = "⏳ Redactando…";
+  setAIStatus("Llamando a Claude para redactar la Carta 1…");
+  showAIWarnings([]);
+  try {
+    const input = gatherCarta1Input();
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const carta = data.carta;
+    if (carta.refused) {
+      setAIStatus(`Solicitud rechazada por el modelo: ${carta.refusedReason || "sin motivo"}`, "error");
+      return;
+    }
+    hydrateCartaPreview(carta);
+    showAIWarnings(carta.warnings);
+    const usedTpl = data.templateUsed ? ` · plantilla base: "${data.templateUsed.label}"` : " · plantilla canónica";
+    setAIStatus(`Borrador generado en ${data.elapsedMs} ms${usedTpl} — revisa con Legal antes de notificar.`, "ok");
+    if (typeof showToast === "function") showToast("Carta 1 redactada con IA — pendiente revisión Legal");
+  } catch (err) {
+    setAIStatus(`Error: ${err.message}`, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+const aiBtn = document.getElementById("bf-ai-generate");
+if (aiBtn) aiBtn.addEventListener("click", generateCartaWithAI);
+
+// ====== Redactar Carta 2 con IA ======
+const C2_TIPO_TO_KEY = {
+  "Amonestación escrita": "carta2-amonestacion",
+  "Suspensión sin goce de haber": "carta2-suspension",
+  "Despido": "carta2-despido",
+  "Desistimiento del procedimiento": "desistimiento"
+};
+const C2_TIPO_LEGIBLE = {
+  "carta2-amonestacion": "Amonestación escrita",
+  "carta2-suspension": "Suspensión sin goce de haberes",
+  "carta2-despido": "Despido",
+  "desistimiento": "Desistimiento del procedimiento"
+};
+
+function setC2Status(msg, kind) {
+  const el = document.getElementById("c2-ai-status");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.color = kind === "error" ? "var(--terracotta)" : kind === "ok" ? "var(--green)" : "var(--gray-muted)";
+}
+
+function showC2Warnings(warnings) {
+  const el = document.getElementById("c2-ai-warnings");
+  if (!el) return;
+  if (!warnings || warnings.length === 0) { el.style.display = "none"; el.innerHTML = ""; return; }
+  el.style.display = "block";
+  el.innerHTML = "<strong>⚠️ Advertencias del modelo:</strong><ul style='margin:6px 0 0 18px;padding:0;'>"
+    + warnings.map(w => `<li>${w.replace(/</g, "&lt;")}</li>`).join("")
+    + "</ul>";
+}
+
+function hydrateCarta2Preview(carta, tipoLabel) {
+  const setText = (id, val) => { const n = document.getElementById(id); if (n && val != null) n.textContent = val; };
+  const setHTML = (id, html) => { const n = document.getElementById(id); if (n && html != null) n.innerHTML = html; };
+  setText("pp2-fecha", "Trujillo, " + (carta.fecha || ""));
+  setText("pp2-numero", carta.numeroCarta || "");
+  if (carta.destinatario) {
+    const d = carta.destinatario;
+    setHTML("pp2-destinatario", `<strong>${d.tratamiento || ""}</strong><br><strong>${(d.nombre || "").toUpperCase()}</strong><br>DNI ${d.dni || ""}<br>${d.puestoUnidad || ""}<br>Presente.—`);
+  }
+  setHTML("pp2-asunto", "Asunto: Decisión final — " + escapeHtml(tipoLabel || ""));
+  if (carta.cuerpo) {
+    setText("pp2-encabezado", carta.cuerpo.encabezado);
+    setText("pp2-intro", carta.cuerpo.introduccion);
+    setHTML("pp2-decision", `<mark>${escapeHtml(carta.cuerpo.decision || "")}</mark>`);
+    setText("pp2-motivacion", carta.cuerpo.motivacion);
+    setHTML("pp2-norma", `<mark>${escapeHtml(carta.cuerpo.normaAplicada || "")}</mark>`);
+    setText("pp2-parrafo-adicional", carta.cuerpo.parrafoAdicional || "");
+    setText("pp2-despedida", carta.cuerpo.despedida || "Atentamente,");
+  }
+  if (carta.firma) {
+    setText("pp2-firma-nombre", carta.firma.nombre);
+    setText("pp2-firma-cargo", carta.firma.cargo);
+  }
+  if (Array.isArray(carta.copia)) {
+    setText("pp2-copia", carta.copia.join(" · "));
+  }
+}
+
+function gatherCarta2Input() {
+  const tipoLabel = (document.getElementById("c2-tipo") || {}).value || "Amonestación escrita";
+  const tipo = C2_TIPO_TO_KEY[tipoLabel] || "carta2-amonestacion";
+  const evaluacion = (document.getElementById("c2-motiva") || {}).value || "";
+  const norma = (document.getElementById("c2-norma") || {}).value || "";
+  const descargo = (document.getElementById("c2-descargo") || {}).value || "";
+  const templateId = (document.getElementById("c2-template") || {}).value || "";
+  const today = new Date().toISOString().slice(0, 10);
+
+  const input = {
+    caseId: "CD-2026-047",
+    trabajador: {
+      nombre: "Juan Pérez Rojas",
+      dni: "70 234 567",
+      puestoUnidad: "Operador de flotación — Unidad Marañón",
+      unidad: "Marañón"
+    },
+    tipo: tipo,
+    carta1: { numero: "RH-CD-2026-047/01", fechaISO: "2026-04-29" },
+    descargoRecibidoISO: "2026-05-02",
+    descargoContenido: descargo,
+    hechosImputados: "Ingreso al área operativa de flotación sin respirador, el 28/04/2026 a las 14:30, observado por el supervisor de turno.",
+    evaluacion: evaluacion,
+    normaAplicada: norma,
+    firma: tipo === "carta2-amonestacion" || tipo === "desistimiento"
+      ? { nombre: "María Salas Rivera", cargo: "Jefa de RR.HH. — Unidad Marañón" }
+      : { nombre: "Carlos Ramírez Ortega", cargo: "Superintendente — Unidad Marañón" },
+    numeroCarta: "RH-CD-2026-047/02",
+    fechaCartaISO: today,
+    templateId: templateId || undefined
+  };
+
+  if (tipo === "carta2-suspension") {
+    input.suspension = { dias: 3, inicioISO: "2026-05-08", finISO: "2026-05-10", retornoISO: "2026-05-11" };
+  } else if (tipo === "carta2-despido") {
+    input.despido = { causalArt25: "Art. 25 inc. a) D.L. 728", fechaCeseISO: "2026-05-08" };
+  } else if (tipo === "carta2-amonestacion") {
+    input.amonestacion = { efectos: "Observación al expediente personal" };
+  }
+  return input;
+}
+
+async function generateCarta2WithAI() {
+  const btn = document.getElementById("c2-ai-generate");
+  if (!btn) return;
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = "⏳ Redactando…";
+  setC2Status("Llamando a Claude para redactar la Carta 2…");
+  showC2Warnings([]);
+  try {
+    const input = gatherCarta2Input();
+    const tipoLabel = C2_TIPO_LEGIBLE[input.tipo];
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/generate-carta2`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const carta = data.carta;
+    if (carta.refused) {
+      setC2Status(`Solicitud rechazada por el modelo: ${carta.refusedReason || "sin motivo"}`, "error");
+      return;
+    }
+    hydrateCarta2Preview(carta, tipoLabel);
+    showC2Warnings(carta.warnings);
+    const usedTpl = data.templateUsed ? ` · plantilla base: "${data.templateUsed.label}"` : " · plantilla canónica";
+    setC2Status(`Borrador generado en ${data.elapsedMs} ms${usedTpl} — revisa con Legal antes de enviar a aprobación.`, "ok");
+    if (typeof showToast === "function") showToast(`Carta 2 (${tipoLabel}) redactada con IA — pendiente revisión Legal`);
+  } catch (err) {
+    setC2Status(`Error: ${err.message}`, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+const c2AiBtn = document.getElementById("c2-ai-generate");
+if (c2AiBtn) c2AiBtn.addEventListener("click", generateCarta2WithAI);
+
+// Refiltra el selector de plantilla cuando cambia el tipo de decisión
+const c2TipoSelect = document.getElementById("c2-tipo");
+const c2TemplateSelect = document.getElementById("c2-template");
+if (c2TipoSelect && c2TemplateSelect) {
+  c2TipoSelect.addEventListener("change", () => {
+    const tipoLabel = c2TipoSelect.value;
+    const tipoKey = C2_TIPO_TO_KEY[tipoLabel];
+    if (tipoKey) {
+      c2TemplateSelect.dataset.templateFilter = tipoKey;
+      populateTemplateSelectors();
+    }
+  });
+}
+
+// ====== Biblioteca de plantillas ======
+const TEMPLATE_TYPE_LABELS = {
+  "carta1": "Carta 1 — Imputación",
+  "carta1-amonestacion": "Carta 1 — Imputación menor",
+  "carta2-amonestacion": "Carta 2 — Amonestación",
+  "carta2-suspension": "Carta 2 — Suspensión",
+  "carta2-despido": "Carta 2 — Despido",
+  "flagrante": "Falta flagrante",
+  "desistimiento": "Desistimiento",
+  "acta-notificacion": "Acta de notificación",
+  "levantamiento": "Levantamiento",
+  "otro": "Otro"
+};
+
+let cachedTemplates = [];
+
+function formatBytes(n) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function formatDate(iso) {
+  try { return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }); }
+  catch { return iso; }
+}
+
+function renderTemplatesTable() {
+  const tbody = document.getElementById("tpl-tbody");
+  const countEl = document.getElementById("tpl-count");
+  if (countEl) countEl.textContent = `${cachedTemplates.length} plantilla${cachedTemplates.length === 1 ? "" : "s"}`;
+  if (!tbody) return;
+  if (cachedTemplates.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">No hay plantillas cargadas todavía. Sube la primera arriba.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = cachedTemplates.map(t => `
+    <tr>
+      <td>📄 <strong>${escapeHtml(t.label || t.filename)}</strong><br><span style="font-size:10.5px;color:var(--gray-muted);">${escapeHtml(t.filename)}</span></td>
+      <td><span class="gravity-pill" style="background:var(--cream);color:var(--teal);border:1px solid var(--cream-dark);">${escapeHtml(TEMPLATE_TYPE_LABELS[t.type] || t.type)}</span></td>
+      <td>${t.version ? `<strong>${escapeHtml(t.version)}</strong>` : "—"}</td>
+      <td style="font-size:11px;color:var(--gray-muted);">${formatDate(t.uploadedAt)}</td>
+      <td style="font-size:11px;color:var(--gray-muted);">${formatBytes(t.sizeBytes)}</td>
+      <td>
+        <button class="edit-btn" data-tpl-preview="${t.id}">Ver</button>
+        <button class="edit-btn" data-tpl-delete="${t.id}" style="color:var(--terracotta);">Eliminar</button>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-tpl-preview]").forEach(b => b.addEventListener("click", () => previewTemplate(b.dataset.tplPreview)));
+  tbody.querySelectorAll("[data-tpl-delete]").forEach(b => b.addEventListener("click", () => deleteTemplateById(b.dataset.tplDelete)));
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function populateTemplateSelectors() {
+  document.querySelectorAll("select[data-template-filter]").forEach(sel => {
+    const allowed = sel.dataset.templateFilter.split(",").map(s => s.trim());
+    const current = sel.value;
+    const baseOption = sel.querySelector('option[value=""]');
+    sel.innerHTML = "";
+    if (baseOption) sel.appendChild(baseOption);
+    cachedTemplates.filter(t => allowed.includes(t.type)).forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = `${t.label || t.filename}${t.version ? ` · ${t.version}` : ""}`;
+      sel.appendChild(opt);
+    });
+    sel.value = current;
+  });
+}
+
+async function refreshTemplates() {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/templates`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    cachedTemplates = data.templates || [];
+    renderTemplatesTable();
+    populateTemplateSelectors();
+  } catch (err) {
+    const tbody = document.getElementById("tpl-tbody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--terracotta);font-size:12px;padding:18px;">Error al cargar plantillas: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+async function previewTemplate(id) {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/templates/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const html = `<div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;" id="tpl-modal-bg">
+      <div style="background:#fff;max-width:780px;width:100%;max-height:85vh;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--gray-line);display:flex;align-items:center;gap:12px;">
+          <strong style="color:var(--teal);flex:1;">📄 ${escapeHtml(data.template.label || data.template.filename)}</strong>
+          <a href="${AI_API_BASE}/api/templates/${id}/raw?token=${encodeURIComponent(getPodToken())}" class="btn" style="font-size:11px;">Descargar original</a>
+          <button class="btn" id="tpl-modal-close" style="font-size:11px;">Cerrar</button>
+        </div>
+        <pre style="margin:0;padding:18px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-wrap;font-family:var(--font-body);color:var(--gray-text);">${escapeHtml(data.text || "(sin texto extraíble)")}</pre>
+      </div>
+    </div>`;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap.firstElementChild);
+    document.getElementById("tpl-modal-close").onclick = () => document.getElementById("tpl-modal-bg").remove();
+    document.getElementById("tpl-modal-bg").onclick = (e) => { if (e.target.id === "tpl-modal-bg") e.target.remove(); };
+  } catch (err) {
+    if (typeof showToast === "function") showToast(`Error: ${err.message}`);
+  }
+}
+
+async function deleteTemplateById(id) {
+  if (!confirm("¿Eliminar esta plantilla? Las cartas ya generadas no se ven afectadas.")) return;
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/templates/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await refreshTemplates();
+    if (typeof showToast === "function") showToast("Plantilla eliminada.");
+  } catch (err) {
+    if (typeof showToast === "function") showToast(`Error: ${err.message}`);
+  }
+}
+
+async function uploadTemplate() {
+  const fileEl = document.getElementById("tpl-file");
+  const typeEl = document.getElementById("tpl-type");
+  const labelEl = document.getElementById("tpl-label");
+  const versionEl = document.getElementById("tpl-version");
+  const statusEl = document.getElementById("tpl-upload-status");
+  const btn = document.getElementById("tpl-upload-btn");
+  const file = fileEl?.files?.[0];
+  if (!file) { statusEl.textContent = "Selecciona un archivo primero."; statusEl.style.color = "var(--terracotta)"; return; }
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Subiendo…";
+  statusEl.style.color = "var(--gray-muted)"; statusEl.textContent = `Subiendo ${file.name}…`;
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("type", typeEl.value);
+    if (labelEl.value) fd.append("label", labelEl.value);
+    if (versionEl.value) fd.append("version", versionEl.value);
+    const res = await podFetch(`${AI_API_BASE}/api/templates`, { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    statusEl.style.color = "var(--green)";
+    statusEl.textContent = `✓ Plantilla cargada (${data.template.textChars.toLocaleString()} caracteres extraídos).`;
+    fileEl.value = ""; labelEl.value = ""; versionEl.value = "";
+    await refreshTemplates();
+  } catch (err) {
+    statusEl.style.color = "var(--terracotta)";
+    statusEl.textContent = `✗ ${err.message}`;
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
+const tplUploadBtn = document.getElementById("tpl-upload-btn");
+if (tplUploadBtn) tplUploadBtn.addEventListener("click", uploadTemplate);
+refreshTemplates();
+
+// ====== Historial IA ======
+const CARTA_TIPO_LABEL = {
+  "carta1": "Carta 1 — Imputación",
+  "carta1-amonestacion": "Carta 1 — Sanción menor",
+  "carta2-amonestacion": "Carta 2 — Amonestación",
+  "carta2-suspension": "Carta 2 — Suspensión",
+  "carta2-despido": "Carta 2 — Despido",
+  "flagrante": "Falta flagrante",
+  "desistimiento": "Desistimiento",
+  "acta-notificacion": "Acta de notificación",
+  "levantamiento": "Levantamiento"
+};
+const ESTADO_COLOR = { borrador: "var(--gold)", revisada: "var(--olive)", notificada: "var(--green)", descartada: "var(--gray-muted)" };
+
+async function loadStoragePill() {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/health`);
+    const data = await res.json();
+    const el = document.getElementById("h-storage-pill");
+    if (el) {
+      el.textContent = `storage: ${data.storage}`;
+      el.style.background = data.storage === "supabase" ? "var(--gold-pale)" : "var(--cream)";
+    }
+  } catch { /* no-op */ }
+}
+
+function renderHistorial(cartas) {
+  const tbody = document.getElementById("h-tbody");
+  const countEl = document.getElementById("h-count");
+  if (countEl) countEl.textContent = `${cartas.length} registros`;
+  if (!tbody) return;
+  if (cartas.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">No hay cartas generadas con esos filtros.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = cartas.map(c => {
+    const tipo = escapeHtml(CARTA_TIPO_LABEL[c.tipo] || c.tipo);
+    const tpl = c.templateLabel ? escapeHtml(c.templateLabel) : '<em style="color:var(--gray-muted);">canónica</em>';
+    const estadoColor = ESTADO_COLOR[c.estado] || "var(--gray-muted)";
+    const warnPill = c.warningsCount > 0 ? `<span title="${c.warningsCount} advertencias" style="margin-left:6px;font-size:9.5px;background:var(--orange);color:white;padding:1px 6px;border-radius:9px;">⚠ ${c.warningsCount}</span>` : "";
+    return `
+      <tr>
+        <td style="font-size:11px;color:var(--gray-muted);">${formatDate(c.generatedAt)}</td>
+        <td><strong>${escapeHtml(c.caseId)}</strong></td>
+        <td>${escapeHtml(c.trabajadorNombre)}<br><span style="font-size:10.5px;color:var(--gray-muted);">${escapeHtml(c.unidad)} · DNI ${escapeHtml(c.trabajadorDni)}</span></td>
+        <td>${tipo}${warnPill}</td>
+        <td style="font-size:11px;">${tpl}</td>
+        <td><span style="font-size:10.5px;font-family:var(--font-head);letter-spacing:1px;color:white;background:${estadoColor};padding:3px 8px;border-radius:10px;text-transform:uppercase;">${c.estado}</span></td>
+        <td style="font-size:11px;color:var(--gray-muted);">${escapeHtml(c.model)}<br>${c.elapsedMs} ms</td>
+        <td>
+          <button class="btn" data-h-load="${c.id}" style="font-size:10.5px;padding:4px 9px;">Cargar preview</button>
+          <select data-h-estado="${c.id}" style="font-size:10.5px;padding:4px 6px;margin-top:3px;">
+            <option ${c.estado === "borrador" ? "selected" : ""}>borrador</option>
+            <option ${c.estado === "revisada" ? "selected" : ""}>revisada</option>
+            <option ${c.estado === "notificada" ? "selected" : ""}>notificada</option>
+            <option ${c.estado === "descartada" ? "selected" : ""}>descartada</option>
+          </select>
+        </td>
+      </tr>
+    `;
+  }).join("");
+  tbody.querySelectorAll("[data-h-load]").forEach(b => b.addEventListener("click", () => loadCartaInPreview(b.dataset.hLoad)));
+  tbody.querySelectorAll("[data-h-estado]").forEach(s => s.addEventListener("change", () => updateCartaEstado(s.dataset.hEstado, s.value)));
+}
+
+async function refreshHistorial() {
+  const caseId = (document.getElementById("h-case") || {}).value?.trim();
+  const tipo = (document.getElementById("h-tipo") || {}).value;
+  const params = new URLSearchParams();
+  if (caseId) params.set("caseId", caseId);
+  if (tipo) params.set("tipo", tipo);
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas?${params.toString()}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    renderHistorial(data.cartas || []);
+  } catch (err) {
+    const tbody = document.getElementById("h-tbody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--terracotta);font-size:12px;padding:18px;">Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+async function loadCartaInPreview(id) {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const carta = data.carta?.outputJson;
+    if (!carta) throw new Error("Sin output guardado");
+    goView("carta");
+    hydrateCartaPreview(carta);
+    showAIWarnings(carta.warnings);
+    setAIStatus(`Cargada del historial · generada ${formatDate(data.carta.generatedAt)} con ${escapeHtml(data.carta.model)}.`, "ok");
+  } catch (err) {
+    if (typeof showToast === "function") showToast(`Error: ${err.message}`);
+  }
+}
+
+async function updateCartaEstado(id, estado) {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${id}/estado`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado })
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `HTTP ${res.status}`); }
+    if (typeof showToast === "function") showToast(`Estado → ${estado}`);
+    await refreshHistorial();
+  } catch (err) {
+    if (typeof showToast === "function") showToast(`Error: ${err.message}`);
+  }
+}
+
+const hRefreshBtn = document.getElementById("h-refresh");
+if (hRefreshBtn) hRefreshBtn.addEventListener("click", refreshHistorial);
+loadStoragePill();
+refreshHistorial();
 
 // ====== Drag & drop evidencia ======
 function setupDrop(id) {

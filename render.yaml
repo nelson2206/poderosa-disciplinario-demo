@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: poderosa-disciplinario
+    runtime: node
+    plan: free               # 750 h/mes gratis; duerme tras 15 min de inactividad
+    region: oregon
+    rootDir: server
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ANTHROPIC_API_KEY
+        sync: false           # Se introduce en el dashboard de Render, nunca en git
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6
+      - key: ALLOW_ORIGIN
+        value: "*"             # Restringir cuando se tenga dominio final
+      - key: STATIC_DIR
+        value: ..              # Express sirve index.html desde la raíz del repo
+      # Backend Supabase (recomendado): defínelos en el dashboard de Render.
+      # Si quedan vacíos, el server usa filesystem (server/data, efímero).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      # Token de acceso al API. Render generará uno seguro automáticamente si
+      # no lo introduces manualmente (generateValue: true).
+      - key: POD_API_TOKEN
+        generateValue: true
