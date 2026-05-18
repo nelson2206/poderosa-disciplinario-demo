@@ -11,7 +11,7 @@ import { promises as fs } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { generateCarta1, generateCarta2, type Carta1Input, type Carta2Input, type Carta2Tipo } from "./agent.js";
+import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
 import {
   getStorage,
   getStorageKind,
@@ -118,9 +118,56 @@ app.get("/api/health", (_req, res) => {
 // Templates
 // ============================================================================
 
-// Todas las rutas /api/templates y /api/cartas requieren token
+// Todas las rutas /api/templates, /api/cartas y /api/colaboradores requieren token
 app.use("/api/templates", requireToken);
 app.use("/api/cartas", requireToken);
+app.use("/api/colaboradores", requireToken);
+
+// ============================================================================
+// Colaboradores — extracción de datos desde imagen (Claude Vision)
+// ============================================================================
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 6 * 1024 * 1024 }, // 6 MB — Claude vision suele bajar de eso al base64
+  fileFilter: (_req, file, cb) => {
+    if (["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.mimetype)) cb(null, true);
+    else cb(new Error(`Tipo no soportado: ${file.mimetype}. Permitidos: PNG, JPEG, WEBP, GIF.`));
+  },
+});
+
+app.post("/api/colaboradores/extraer", generateLimiter, imageUpload.single("imagen"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Falta el archivo de imagen (campo 'imagen')" });
+    const base64 = req.file.buffer.toString("base64");
+    const mime = req.file.mimetype as "image/png" | "image/jpeg" | "image/webp" | "image/gif";
+    const t0 = Date.now();
+    const trabajador = await extractTrabajadorFromImage(base64, mime);
+    res.json({ trabajador, elapsedMs: Date.now() - t0 });
+  } catch (err) {
+    console.error("[/api/colaboradores/extraer] error:", (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ============================================================================
+// Cartas — clasificación automática del tipo según incidente
+// ============================================================================
+
+app.post("/api/cartas/clasificar", generateLimiter, async (req, res) => {
+  try {
+    const body = req.body as ClasificacionInput | undefined;
+    if (!body || !body.conducta || typeof body.conducta !== "string" || body.conducta.trim().length < 10) {
+      return res.status(400).json({ error: "Campo 'conducta' requerido (mínimo 10 caracteres)" });
+    }
+    const t0 = Date.now();
+    const result = await classifyIncidente(body);
+    res.json({ ...result, elapsedMs: Date.now() - t0 });
+  } catch (err) {
+    console.error("[/api/cartas/clasificar] error:", (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
 
 app.get("/api/templates", async (_req, res) => {
   try {

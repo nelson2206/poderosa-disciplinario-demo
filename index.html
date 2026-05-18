@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#1F4D5C">
 <!-- URL del backend de IA. Para producción (GitHub Pages, etc.), reemplaza por la URL completa, p.ej. "https://poderosa-api.onrender.com". Si va vacío, el front usa el mismo origin (modo local: el server Express sirve este HTML). -->
 <meta name="poderosa-api-base" content="">
+<!-- Biblioteca para exportar el preview de carta a PDF (cliente-side, sin servidor adicional) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 <title>Sistema de Gestión Disciplinaria — Compañía Minera Poderosa</title>
 <meta name="description" content="Aplicativo interno de Compañía Minera Poderosa para la gestión de medidas disciplinarias conforme al TUO D.L. 728. Trazabilidad lista para SUNAFIL.">
 
@@ -757,9 +759,10 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
     <!-- Subsección: Elaboración de cartas (compartida entre rrhh y modo "cartas") -->
     <div class="nav-section nav-grp" data-role="rrhh cartas" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">📝 Elaboración de cartas</div>
     <nav class="nav nav-grp" data-role="rrhh cartas">
+      <button class="nav-item" data-action="goto" data-view="nueva-carta" style="background:var(--gold-pale);color:var(--teal-dark);font-weight:600;"><span class="nav-ico" style="color:var(--gold);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></span>✨ Nueva carta con IA</button>
       <button class="nav-item" data-action="goto" data-view="plantillas"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M16 3v5h5M8 13h8M8 17h5"/></svg></span>Plantillas</button>
-      <button class="nav-item" data-action="goto" data-view="carta"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></span>Generar Carta 1</button>
-      <button class="nav-item" data-action="goto" data-view="carta2"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M10 16l2 2 4-4"/></svg></span>Generar Carta 2</button>
+      <button class="nav-item" data-action="goto" data-view="carta" style="opacity:.65;"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></span>Generar Carta 1 <span style="font-size:9px;color:var(--gray-muted);">(legacy)</span></button>
+      <button class="nav-item" data-action="goto" data-view="carta2" style="opacity:.65;"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M10 16l2 2 4-4"/></svg></span>Generar Carta 2 <span style="font-size:9px;color:var(--gray-muted);">(legacy)</span></button>
     </nav>
 
     <!-- Subsección: Seguimiento de cartas (compartida entre rrhh y modo "cartas") -->
@@ -1672,6 +1675,158 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             </thead>
             <tbody id="reg-tbody"></tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: NUEVA CARTA (wizard 4 pasos) ===== -->
+      <section class="view" id="view-nueva-carta">
+        <div class="greeting">
+          <h1>✨ Nueva carta disciplinaria</h1>
+          <p>4 pasos: <strong>1.</strong> datos del colaborador (foto del DNI o manual) · <strong>2.</strong> incidente · <strong>3.</strong> tipo de carta (auto o manual) · <strong>4.</strong> editar y exportar PDF/Word.</p>
+        </div>
+
+        <!-- Stepper -->
+        <div id="nc-stepper" style="display:flex;gap:8px;margin:18px 0 22px;">
+          <div class="nc-step active" data-step="1" style="flex:1;background:var(--teal);color:var(--white);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gold);color:var(--teal-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">1</span><span><strong>Colaborador</strong><br><span style="opacity:.85;font-size:10.5px;">Datos identificatorios</span></span></div>
+          <div class="nc-step" data-step="2" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">2</span><span><strong>Incidente</strong><br><span style="font-size:10.5px;">Descripción y evidencias</span></span></div>
+          <div class="nc-step" data-step="3" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">3</span><span><strong>Tipo de carta</strong><br><span style="font-size:10.5px;">Auto o manual</span></span></div>
+          <div class="nc-step" data-step="4" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">4</span><span><strong>Editar y exportar</strong><br><span style="font-size:10.5px;">PDF / Word</span></span></div>
+        </div>
+
+        <!-- ===== Paso 1: Colaborador ===== -->
+        <div class="nc-pane" data-step-pane="1" style="display:block;">
+          <div class="card">
+            <div class="card-header"><h2>Datos del colaborador</h2></div>
+            <div style="padding:18px 20px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+                <div>
+                  <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">Opción A · Subir imagen (DNI / ficha)</div>
+                  <label for="nc-foto" id="nc-foto-dropzone" style="display:block;border:2px dashed var(--gold-light);border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:var(--gold-50);">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--gold);"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    <div style="margin-top:8px;font-size:13px;color:var(--gray-text);"><strong>Pega o suelta una imagen aquí</strong></div>
+                    <div style="font-size:11px;color:var(--gray-muted);margin-top:4px;">PNG · JPG · WEBP (máx. 6 MB)</div>
+                  </label>
+                  <input type="file" id="nc-foto" accept="image/*" style="display:none;">
+                  <div id="nc-foto-preview" style="margin-top:12px;"></div>
+                  <button class="btn primary" id="nc-extraer-btn" style="display:none;margin-top:10px;width:100%;background:var(--gold);">✨ Extraer datos con IA</button>
+                  <div id="nc-extraer-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
+                </div>
+
+                <div>
+                  <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">Opción B · Ingreso manual / revisión</div>
+                  <div class="field"><label for="nc-trab-nombre">Nombre completo</label><input id="nc-trab-nombre" type="text" placeholder="Juan Pérez Rojas"></div>
+                  <div class="field"><label for="nc-trab-dni">DNI (8 dígitos)</label><input id="nc-trab-dni" type="text" placeholder="70 234 567"></div>
+                  <div class="field"><label for="nc-trab-puesto">Puesto</label><input id="nc-trab-puesto" type="text" placeholder="Operador de flotación"></div>
+                  <div class="field"><label for="nc-trab-unidad">Unidad</label>
+                    <select id="nc-trab-unidad">
+                      <option value="">—</option>
+                      <option>Marañón</option>
+                      <option>Santa María</option>
+                      <option>Palca</option>
+                    </select>
+                  </div>
+                  <div id="nc-trab-notas" style="display:none;margin-top:8px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+            <button class="btn primary" data-nc-next="2">Siguiente: Incidente →</button>
+          </div>
+        </div>
+
+        <!-- ===== Paso 2: Incidente ===== -->
+        <div class="nc-pane" data-step-pane="2" style="display:none;">
+          <div class="card">
+            <div class="card-header"><h2>Descripción del incidente</h2></div>
+            <div style="padding:18px 20px;">
+              <div class="field"><label for="nc-inc-fecha">Fecha y hora del hecho</label><input id="nc-inc-fecha" type="datetime-local"></div>
+              <div class="field"><label for="nc-inc-lugar">Lugar (área / unidad)</label><input id="nc-inc-lugar" type="text" placeholder="Área de flotación · Planta concentradora · Marañón"></div>
+              <div class="field"><label for="nc-inc-conducta">Descripción libre del hecho</label>
+                <textarea id="nc-inc-conducta" rows="6" placeholder="Cuenta en tus palabras lo que pasó: qué ocurrió, quién lo observó, qué normas se incumplieron…"></textarea>
+              </div>
+              <div class="field"><label for="nc-inc-anexos">Anexos / evidencias (uno por línea)</label>
+                <textarea id="nc-inc-anexos" rows="3" placeholder="Reporte del supervisor de turno&#10;Registro CCTV&#10;Cargo de notificación con acuse de recibo"></textarea>
+              </div>
+              <div class="field"><label for="nc-inc-descargo">¿Ya hay descargo del trabajador? (déjalo vacío si la carta es la imputación inicial)</label>
+                <textarea id="nc-inc-descargo" rows="3" placeholder="Resume aquí el descargo recibido — esto cambiará el tipo de carta a Carta 2 (post-descargo)."></textarea>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px;">
+            <button class="btn" data-nc-prev="1">← Atrás</button>
+            <button class="btn primary" data-nc-next="3">Siguiente: Tipo de carta →</button>
+          </div>
+        </div>
+
+        <!-- ===== Paso 3: Tipo de carta ===== -->
+        <div class="nc-pane" data-step-pane="3" style="display:none;">
+          <div class="card">
+            <div class="card-header"><h2>Tipo de carta</h2></div>
+            <div style="padding:18px 20px;">
+              <div class="field" style="margin-bottom:18px;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;color:var(--teal);">
+                  <input type="radio" name="nc-tipo-mode" value="auto" id="nc-tipo-auto" checked>
+                  <span>✨ Auto-detectar con IA (recomendado)</span>
+                </label>
+                <div style="font-size:11.5px;color:var(--gray-muted);margin:6px 0 0 26px;">La IA analiza la descripción y propone el tipo correcto. Tú lo validas en el paso final.</div>
+              </div>
+              <div class="field">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;color:var(--teal);">
+                  <input type="radio" name="nc-tipo-mode" value="manual" id="nc-tipo-manual">
+                  <span>Elegir manualmente</span>
+                </label>
+                <select id="nc-tipo-manual-select" disabled style="margin:8px 0 0 26px;width:calc(100% - 26px);">
+                  <option value="carta1">Carta 1 — Imputación (preaviso de despido)</option>
+                  <option value="carta1-amonestacion">Carta 1 — Imputación a sanción menor</option>
+                  <option value="carta2-amonestacion">Carta 2 — Amonestación escrita (post-descargo)</option>
+                  <option value="carta2-suspension">Carta 2 — Suspensión sin goce (post-descargo)</option>
+                  <option value="carta2-despido">Carta 2 — Despido (post-descargo)</option>
+                  <option value="flagrante">Falta flagrante (sin proceso previo)</option>
+                </select>
+              </div>
+
+              <div class="field" style="margin-top:18px;"><label for="nc-tpl-base">Plantilla base (opcional)</label>
+                <select id="nc-tpl-base">
+                  <option value="">— Plantilla canónica del sistema —</option>
+                </select>
+                <div style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Las plantillas se filtran después de elegir el tipo.</div>
+              </div>
+
+              <div id="nc-clasif-resultado" style="display:none;margin-top:14px;padding:14px 16px;background:var(--gold-50);border:1px solid var(--gold-light);border-radius:8px;font-size:12px;color:var(--gray-text);"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px;">
+            <button class="btn" data-nc-prev="2">← Atrás</button>
+            <button class="btn primary" id="nc-generar-btn" style="background:var(--gold);">✨ Generar carta con IA</button>
+          </div>
+          <div id="nc-generar-status" style="margin-top:10px;font-size:12px;color:var(--gray-muted);min-height:16px;"></div>
+        </div>
+
+        <!-- ===== Paso 4: Preview editable + exportar ===== -->
+        <div class="nc-pane" data-step-pane="4" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:18px;">
+            <div class="card">
+              <div class="card-header"><h2>Editar contenido</h2></div>
+              <div style="padding:14px 18px;font-size:11.5px;color:var(--gray-muted);">Cambia cualquier campo y el preview de la derecha se actualiza al vuelo.</div>
+              <div id="nc-editor" style="padding:0 18px 18px;display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="display:flex;align-items:center;"><h2>Vista previa</h2>
+                <div style="margin-left:auto;display:flex;gap:6px;">
+                  <button class="btn" id="nc-export-pdf" style="font-size:11px;background:var(--terracotta);color:white;border:none;">📄 PDF</button>
+                  <button class="btn" id="nc-export-docx" style="font-size:11px;background:#2A5BA0;color:white;border:none;">📝 Word</button>
+                </div>
+              </div>
+              <div id="nc-preview-paper" class="preview-paper" style="margin:14px;"></div>
+            </div>
+          </div>
+          <div id="nc-warnings" style="display:none;margin-top:14px;padding:12px 14px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:12px;color:var(--gray-text);"></div>
+          <div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px;">
+            <button class="btn" data-nc-prev="3">← Atrás (regenerar)</button>
+            <button class="btn primary" id="nc-guardar-btn" style="background:var(--teal);">Guardar en Historial</button>
+          </div>
+          <div id="nc-guardar-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
         </div>
       </section>
 
@@ -3433,6 +3588,433 @@ document.addEventListener("keydown", e => {
     searchInput.focus();
   }
 });
+
+// ============================================================================
+// Wizard "Nueva carta" — 4 pasos
+// ============================================================================
+const ncState = {
+  step: 1,
+  trabajador: { nombre: "", dni: "", puesto: "", unidad: "" },
+  incidente: { fechaHechoISO: "", lugar: "", conducta: "", anexos: [], descargo: "" },
+  tipoMode: "auto",
+  tipoManual: "carta1",
+  templateId: "",
+  clasificacion: null,
+  cartaOutput: null,
+  caseId: "",
+};
+
+function ncSetStep(n) {
+  ncState.step = n;
+  document.querySelectorAll("#nc-stepper .nc-step").forEach(s => {
+    const isCurrent = Number(s.dataset.step) === n;
+    const isDone = Number(s.dataset.step) < n;
+    s.style.background = isCurrent ? "var(--teal)" : (isDone ? "var(--green)" : "var(--cream)");
+    s.style.color = isCurrent || isDone ? "var(--white)" : "var(--gray-muted)";
+    const circle = s.querySelector("span:first-child");
+    if (circle) {
+      circle.style.background = isCurrent ? "var(--gold)" : (isDone ? "var(--white)" : "var(--gray-line)");
+      circle.style.color = isCurrent ? "var(--teal-dark)" : (isDone ? "var(--green)" : "var(--gray-muted)");
+      if (isDone) circle.textContent = "✓"; else circle.textContent = String(s.dataset.step);
+    }
+  });
+  document.querySelectorAll(".nc-pane").forEach(p => {
+    p.style.display = Number(p.dataset.stepPane) === n ? "block" : "none";
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ====== Paso 1: imagen → extraer ======
+const ncFotoInput = document.getElementById("nc-foto");
+const ncFotoDropzone = document.getElementById("nc-foto-dropzone");
+const ncFotoPreview = document.getElementById("nc-foto-preview");
+const ncExtraerBtn = document.getElementById("nc-extraer-btn");
+let ncFotoFile = null;
+
+function showFotoPreview(file) {
+  ncFotoFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    ncFotoPreview.innerHTML = `<img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid var(--gray-line);">`;
+    ncExtraerBtn.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+}
+
+if (ncFotoInput) ncFotoInput.addEventListener("change", () => {
+  const f = ncFotoInput.files[0];
+  if (f) showFotoPreview(f);
+});
+
+if (ncFotoDropzone) {
+  ncFotoDropzone.addEventListener("dragover", e => { e.preventDefault(); ncFotoDropzone.style.background = "var(--gold-pale)"; });
+  ncFotoDropzone.addEventListener("dragleave", () => { ncFotoDropzone.style.background = "var(--gold-50)"; });
+  ncFotoDropzone.addEventListener("drop", e => {
+    e.preventDefault();
+    ncFotoDropzone.style.background = "var(--gold-50)";
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith("image/")) showFotoPreview(f);
+  });
+  // Paste-from-clipboard support
+  window.addEventListener("paste", e => {
+    if (ncState.step !== 1 || !document.getElementById("view-nueva-carta").classList.contains("active")) return;
+    const items = e.clipboardData?.items || [];
+    for (const it of items) if (it.type.startsWith("image/")) {
+      const f = it.getAsFile();
+      if (f) { showFotoPreview(f); break; }
+    }
+  });
+}
+
+async function ncExtraer() {
+  if (!ncFotoFile) return;
+  const status = document.getElementById("nc-extraer-status");
+  ncExtraerBtn.disabled = true;
+  const orig = ncExtraerBtn.textContent;
+  ncExtraerBtn.textContent = "⏳ Analizando con IA…";
+  status.style.color = "var(--gray-muted)";
+  status.textContent = "Claude está leyendo la imagen…";
+  try {
+    const fd = new FormData();
+    fd.append("imagen", ncFotoFile);
+    const res = await podFetch(`${AI_API_BASE}/api/colaboradores/extraer`, { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const t = data.trabajador || {};
+    if (t.nombre) document.getElementById("nc-trab-nombre").value = t.nombre;
+    if (t.dni) document.getElementById("nc-trab-dni").value = t.dni;
+    if (t.puesto) document.getElementById("nc-trab-puesto").value = t.puesto;
+    if (t.unidad) document.getElementById("nc-trab-unidad").value = t.unidad;
+    const notas = document.getElementById("nc-trab-notas");
+    if (Array.isArray(t.notas) && t.notas.length > 0) {
+      notas.style.display = "block";
+      notas.innerHTML = `<strong>⚠ Notas de la IA (confianza: ${t.confianza || "?"}):</strong><ul style="margin:6px 0 0 16px;padding:0;">${t.notas.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>`;
+    } else {
+      notas.style.display = "none";
+    }
+    status.style.color = "var(--green)";
+    status.textContent = `✓ Datos extraídos en ${data.elapsedMs} ms · confianza: ${t.confianza}. Revisa y corrige si hace falta.`;
+  } catch (err) {
+    status.style.color = "var(--terracotta)";
+    status.textContent = `Error: ${err.message}`;
+  } finally {
+    ncExtraerBtn.disabled = false;
+    ncExtraerBtn.textContent = orig;
+  }
+}
+if (ncExtraerBtn) ncExtraerBtn.addEventListener("click", ncExtraer);
+
+// ====== Step navigation ======
+function ncGatherTrabajador() {
+  ncState.trabajador = {
+    nombre: document.getElementById("nc-trab-nombre").value.trim(),
+    dni: document.getElementById("nc-trab-dni").value.trim(),
+    puesto: document.getElementById("nc-trab-puesto").value.trim(),
+    unidad: document.getElementById("nc-trab-unidad").value.trim()
+  };
+}
+function ncGatherIncidente() {
+  const anexosRaw = document.getElementById("nc-inc-anexos").value;
+  ncState.incidente = {
+    fechaHechoISO: document.getElementById("nc-inc-fecha").value || "",
+    lugar: document.getElementById("nc-inc-lugar").value.trim(),
+    conducta: document.getElementById("nc-inc-conducta").value.trim(),
+    anexos: anexosRaw.split(/\n+/).map(s => s.trim()).filter(Boolean),
+    descargo: document.getElementById("nc-inc-descargo").value.trim()
+  };
+}
+
+document.querySelectorAll("[data-nc-next]").forEach(b => b.addEventListener("click", () => {
+  const next = Number(b.dataset.ncNext);
+  if (next === 2) ncGatherTrabajador();
+  if (next === 3) ncGatherIncidente();
+  ncSetStep(next);
+  // Al entrar al paso 3, refrescamos el selector de plantilla con el tipo más probable
+  if (next === 3) ncRefreshTemplateSelector();
+}));
+document.querySelectorAll("[data-nc-prev]").forEach(b => b.addEventListener("click", () => {
+  ncSetStep(Number(b.dataset.ncPrev));
+}));
+
+// ====== Paso 3: tipo (auto/manual) + selector plantilla ======
+const ncTipoAuto = document.getElementById("nc-tipo-auto");
+const ncTipoManual = document.getElementById("nc-tipo-manual");
+const ncTipoManualSelect = document.getElementById("nc-tipo-manual-select");
+[ncTipoAuto, ncTipoManual].forEach(r => r?.addEventListener("change", () => {
+  ncState.tipoMode = ncTipoAuto.checked ? "auto" : "manual";
+  ncTipoManualSelect.disabled = ncState.tipoMode !== "manual";
+  ncRefreshTemplateSelector();
+}));
+ncTipoManualSelect?.addEventListener("change", () => {
+  ncState.tipoManual = ncTipoManualSelect.value;
+  ncRefreshTemplateSelector();
+});
+
+function ncRefreshTemplateSelector() {
+  const sel = document.getElementById("nc-tpl-base");
+  if (!sel) return;
+  const tipo = ncState.tipoMode === "manual" ? ncState.tipoManual : null; // null = mostrar todos
+  const current = sel.value;
+  sel.innerHTML = "";
+  const base = document.createElement("option");
+  base.value = ""; base.textContent = "— Plantilla canónica del sistema —"; sel.appendChild(base);
+  cachedTemplates.filter(t => !tipo || t.type === tipo).forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = `${t.label || t.filename}${t.version ? ` · ${t.version}` : ""} (${t.type})`;
+    sel.appendChild(opt);
+  });
+  sel.value = current;
+}
+
+// ====== Paso 3 → Generar ======
+async function ncGenerar() {
+  const btn = document.getElementById("nc-generar-btn");
+  const status = document.getElementById("nc-generar-status");
+  const tplSel = document.getElementById("nc-tpl-base");
+  ncState.templateId = tplSel.value || "";
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Trabajando…";
+  status.style.color = "var(--gray-muted)";
+
+  try {
+    // 1) Decidir tipo
+    let tipo = ncState.tipoManual;
+    if (ncState.tipoMode === "auto") {
+      status.textContent = "Paso 1/2 · Clasificando incidente con IA…";
+      const clasifRes = await podFetch(`${AI_API_BASE}/api/cartas/clasificar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conducta: ncState.incidente.conducta,
+          yaTuvoDescargo: ncState.incidente.descargo.length > 20
+        })
+      });
+      const clasifData = await clasifRes.json();
+      if (!clasifRes.ok) throw new Error(clasifData.error || `HTTP ${clasifRes.status}`);
+      ncState.clasificacion = clasifData;
+      tipo = clasifData.tipoSugerido;
+      const resEl = document.getElementById("nc-clasif-resultado");
+      resEl.style.display = "block";
+      resEl.innerHTML = `<strong style="color:var(--teal);">📌 Tipo sugerido por IA:</strong> <code>${escapeHtml(tipo)}</code> · gravedad <strong>${escapeHtml(clasifData.gravedadEstimada)}</strong> · confianza <strong>${escapeHtml(clasifData.confianza)}</strong><br><br>${escapeHtml(clasifData.razonamiento)}<br><br><strong>Norma sugerida:</strong> ${escapeHtml(clasifData.normaSugerida)}` + (clasifData.advertencias?.length ? `<br><br><strong>⚠ Advertencias:</strong><ul style='margin:4px 0 0 16px;'>${clasifData.advertencias.map(a => `<li>${escapeHtml(a)}</li>`).join("")}</ul>` : "");
+    }
+    ncState.tipo = tipo;
+
+    // 2) Llamar al endpoint correcto según el tipo
+    const caseId = ncState.caseId || `NC-${Date.now().toString().slice(-7)}`;
+    ncState.caseId = caseId;
+    status.textContent = "Paso 2/2 · Redactando la carta con Claude (30-40s)…";
+
+    const isCarta2 = tipo.startsWith("carta2-") || tipo === "desistimiento";
+    let res, body;
+    const trabPayload = {
+      nombre: ncState.trabajador.nombre || "—",
+      dni: ncState.trabajador.dni || "—",
+      puestoUnidad: `${ncState.trabajador.puesto || "—"} — Unidad ${ncState.trabajador.unidad || "—"}`,
+      unidad: ncState.trabajador.unidad || "Marañón"
+    };
+
+    if (isCarta2) {
+      body = {
+        caseId,
+        trabajador: trabPayload,
+        tipo,
+        carta1: { numero: `RH-${caseId}/01`, fechaISO: new Date().toISOString().slice(0, 10) },
+        descargoContenido: ncState.incidente.descargo,
+        hechosImputados: ncState.incidente.conducta,
+        evaluacion: ncState.incidente.descargo ? `Tras evaluar el descargo presentado, se decide aplicar ${tipo}.` : "Vencido el plazo sin descargo, se aplica la sanción.",
+        normaAplicada: ncState.clasificacion?.normaSugerida || "Art. 25 del TUO del D.L. N° 728",
+        firma: tipo === "carta2-amonestacion"
+          ? { nombre: "Jefe/a de RR.HH.", cargo: `Jefe/a de RR.HH. — Unidad ${ncState.trabajador.unidad || "—"}` }
+          : { nombre: "Superintendente", cargo: `Superintendente — Unidad ${ncState.trabajador.unidad || "—"}` },
+        numeroCarta: `RH-${caseId}/02`,
+        templateId: ncState.templateId || undefined
+      };
+      if (tipo === "carta2-suspension") body.suspension = { dias: 3, inicioISO: new Date(Date.now() + 86400000).toISOString().slice(0, 10), finISO: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10), retornoISO: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10) };
+      if (tipo === "carta2-despido") body.despido = { causalArt25: ncState.clasificacion?.normaSugerida || "Art. 25 inc. a) D.L. 728", fechaCeseISO: new Date().toISOString().slice(0, 10) };
+      if (tipo === "carta2-amonestacion") body.amonestacion = { efectos: "Observación al expediente personal" };
+      res = await podFetch(`${AI_API_BASE}/api/cartas/generate-carta2`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      });
+    } else {
+      body = {
+        caseId,
+        trabajador: trabPayload,
+        faltaTipificada: ncState.clasificacion?.gravedadEstimada ? `Falta ${ncState.clasificacion.gravedadEstimada}` : "Falta laboral",
+        normaAplicable: ncState.clasificacion?.normaSugerida || "Art. 25 del TUO del D.L. N° 728",
+        conducta: ncState.incidente.conducta,
+        fechaHechoISO: ncState.incidente.fechaHechoISO || new Date().toISOString(),
+        lugar: ncState.incidente.lugar,
+        plazoDescargo: tipo === "carta1" ? "seis (6) días naturales" : "tres (3) días hábiles",
+        anexos: ncState.incidente.anexos.length ? ncState.incidente.anexos : ["Reporte interno"],
+        firma: { nombre: "Jefe/a de RR.HH.", cargo: `Jefe/a de RR.HH. — Unidad ${ncState.trabajador.unidad || "—"}` },
+        numeroCarta: `RH-${caseId}/01`,
+        templateId: ncState.templateId || undefined
+      };
+      res = await podFetch(`${AI_API_BASE}/api/cartas/generate`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      });
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    ncState.cartaOutput = data.carta;
+    status.style.color = "var(--green)";
+    status.textContent = `✓ Generada en ${data.elapsedMs} ms · tipo: ${tipo}`;
+    ncRenderPaso4();
+    ncSetStep(4);
+  } catch (err) {
+    status.style.color = "var(--terracotta)";
+    status.textContent = `Error: ${err.message}`;
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+document.getElementById("nc-generar-btn")?.addEventListener("click", ncGenerar);
+
+// ====== Paso 4: editor + preview + export ======
+function ncRenderPaso4() {
+  const c = ncState.cartaOutput;
+  if (!c) return;
+  const editor = document.getElementById("nc-editor");
+  editor.innerHTML = "";
+
+  const editableFields = [
+    { key: "asunto", label: "Asunto", multi: false },
+    { key: "fecha", label: "Fecha", multi: false },
+    { key: "numeroCarta", label: "Número de carta", multi: false },
+  ];
+  // Campos del cuerpo
+  if (c.cuerpo) {
+    Object.keys(c.cuerpo).forEach(k => editableFields.push({ key: `cuerpo.${k}`, label: k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, " $1"), multi: true }));
+  }
+
+  editableFields.forEach(f => {
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    wrap.style.margin = "0";
+    const lbl = document.createElement("label");
+    lbl.textContent = f.label;
+    lbl.style.fontSize = "10.5px";
+    wrap.appendChild(lbl);
+    const input = document.createElement(f.multi ? "textarea" : "input");
+    if (f.multi) input.rows = 3;
+    const val = f.key.startsWith("cuerpo.") ? c.cuerpo[f.key.split(".")[1]] : c[f.key];
+    input.value = val || "";
+    input.addEventListener("input", () => {
+      if (f.key.startsWith("cuerpo.")) c.cuerpo[f.key.split(".")[1]] = input.value;
+      else c[f.key] = input.value;
+      ncRenderPreview();
+    });
+    wrap.appendChild(input);
+    editor.appendChild(wrap);
+  });
+
+  // Warnings
+  const warnEl = document.getElementById("nc-warnings");
+  if (c.warnings?.length) {
+    warnEl.style.display = "block";
+    warnEl.innerHTML = `<strong>⚠ Advertencias del modelo (${c.warnings.length}):</strong><ul style="margin:6px 0 0 18px;padding:0;">${c.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join("")}</ul>`;
+  } else {
+    warnEl.style.display = "none";
+  }
+
+  ncRenderPreview();
+}
+
+function ncRenderPreview() {
+  const c = ncState.cartaOutput;
+  if (!c) return;
+  const root = document.getElementById("nc-preview-paper");
+  const isCarta2 = (ncState.tipo || "").startsWith("carta2-") || ncState.tipo === "desistimiento";
+  const d = c.destinatario || {};
+  const f = c.firma || {};
+  const cuerpo = c.cuerpo || {};
+  const anexosTxt = Array.isArray(c.anexos) ? c.anexos.join(" · ") : (Array.isArray(c.copia) ? c.copia.join(" · ") : "");
+  const anexosLabel = isCarta2 ? "Copia:" : "Anexos:";
+  root.innerHTML = `
+    <div class="letterhead" style="border-bottom:1px solid var(--gold);padding-bottom:10px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="font-family:var(--font-head);color:var(--gold);font-size:18px;">PODEROSA</div>
+        <div style="font-size:10.5px;color:var(--gray-muted);">
+          Compañía Minera Poderosa S.A.<br>
+          RUC 20137025354<br>
+          Gerencia de RR.HH. — ${escapeHtml(ncState.trabajador.unidad || "—")}
+        </div>
+      </div>
+    </div>
+    <p style="text-align:right;font-size:12.5px;">Trujillo, ${escapeHtml(c.fecha || "")}</p>
+    <p style="text-align:right;font-size:12.5px;">Carta N° <strong>${escapeHtml(c.numeroCarta || "")}</strong></p>
+    <p style="margin-top:18px;"><strong>${escapeHtml(d.tratamiento || "Señor")}</strong><br><strong>${escapeHtml((d.nombre || "").toUpperCase())}</strong><br>DNI ${escapeHtml(d.dni || "")}<br>${escapeHtml(d.puestoUnidad || "")}<br>Presente.—</p>
+    <p class="ref">Asunto: ${escapeHtml(c.asunto || "")}</p>
+    <p>${escapeHtml(cuerpo.encabezado || "")}</p>
+    <p>${escapeHtml(cuerpo.introduccion || cuerpo.intro || "")}</p>
+    ${isCarta2 ? `
+      <p><strong>Decisión.</strong> <mark>${escapeHtml(cuerpo.decision || "")}</mark></p>
+      <p><strong>Motivación.</strong> ${escapeHtml(cuerpo.motivacion || "")}</p>
+      <p><strong>Norma aplicada.</strong> <mark>${escapeHtml(cuerpo.normaAplicada || "")}</mark></p>
+      <p>${escapeHtml(cuerpo.parrafoAdicional || "")}</p>
+    ` : `
+      <p><strong>Hechos imputados.</strong> ${escapeHtml(cuerpo.hechosImputados || "")}</p>
+      <p><strong>Norma aplicable.</strong> <mark>${escapeHtml(cuerpo.normaAplicable || "")}</mark></p>
+      <p><strong>Derecho de defensa.</strong> ${escapeHtml(cuerpo.derechoDefensa || "")}</p>
+      <p>${escapeHtml(cuerpo.canalDescargo || "")} <strong>${escapeHtml(cuerpo.cierreNoSancion || "")}</strong></p>
+    `}
+    <p>${escapeHtml(cuerpo.despedida || "Atentamente,")}</p>
+    <div class="signature" style="margin-top:30px;text-align:center;"><div class="line" style="border-top:1px solid #000;width:280px;margin:0 auto 6px;"></div><strong>${escapeHtml(f.nombre || "")}</strong><br><span style="color:#666;">${escapeHtml(f.cargo || "")}</span><br><span style="color:#666;">${escapeHtml(f.empresa || "Compañía Minera Poderosa S.A.")}</span></div>
+    ${anexosTxt ? `<div class="annex" style="margin-top:22px;font-size:11.5px;color:#666;"><strong>${anexosLabel}</strong> ${escapeHtml(anexosTxt)}.</div>` : ""}
+  `;
+}
+
+// ====== Exportar PDF ======
+document.getElementById("nc-export-pdf")?.addEventListener("click", () => {
+  const root = document.getElementById("nc-preview-paper");
+  if (!root || !ncState.cartaOutput) return;
+  if (typeof html2pdf === "undefined") {
+    alert("La biblioteca html2pdf aún se está cargando. Reintenta en 1-2 segundos.");
+    return;
+  }
+  const filename = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.pdf`.replace(/[\/\\?]/g, "-");
+  html2pdf().set({
+    margin: [12, 12, 12, 12],
+    filename,
+    image: { type: "jpeg", quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  }).from(root).save();
+});
+
+// ====== Exportar Word (HTML con MIME de Word — abre en Word/Pages/Docs) ======
+document.getElementById("nc-export-docx")?.addEventListener("click", () => {
+  const root = document.getElementById("nc-preview-paper");
+  if (!root || !ncState.cartaOutput) return;
+  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Carta</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}mark{background:#FFF1B3;}</style></head><body>${root.innerHTML}</body></html>`;
+  const blob = new Blob(["﻿" + html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.doc`.replace(/[\/\\?]/g, "-");
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+// ====== Guardar en historial (re-llama el endpoint para que persista la versión editada) ======
+document.getElementById("nc-guardar-btn")?.addEventListener("click", async () => {
+  if (typeof showToast === "function") showToast("✓ Borrador guardado en Historial.");
+  // La carta ya está persistida desde el primer generate (se guardó en /api/cartas/generate(-carta2)).
+  // Cuando añadamos edición persistida, aquí llamaremos a un PATCH /api/cartas/:id/output.
+  await refreshHistorial?.();
+  document.getElementById("nc-guardar-status").style.color = "var(--green)";
+  document.getElementById("nc-guardar-status").textContent = "✓ Guardado. Encuéntrala en 'Cartas creadas'.";
+});
+
+// Inicialización del wizard al entrar a la vista
+const ncObserver = new MutationObserver(() => {
+  if (document.getElementById("view-nueva-carta")?.classList.contains("active")) {
+    ncSetStep(ncState.step || 1);
+    refreshTemplates?.(); // asegurar caché de plantillas al día
+  }
+});
+const viewNueva = document.getElementById("view-nueva-carta");
+if (viewNueva) ncObserver.observe(viewNueva, { attributes: true, attributeFilter: ["class"] });
 </script>
 </body>
 </html>
