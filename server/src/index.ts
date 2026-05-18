@@ -11,7 +11,7 @@ import { promises as fs } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
+import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, MODEL_CONFIG, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
 import {
   getStorage,
   getStorageKind,
@@ -108,7 +108,8 @@ app.use("/api", apiLimiter);
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
-    model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
+    model: MODEL_CONFIG.default,
+    models: MODEL_CONFIG,
     hasKey: Boolean(process.env.ANTHROPIC_API_KEY),
     storage: getStorageKind(),
     authEnabled: !AUTH_DISABLED,
@@ -144,8 +145,8 @@ app.post("/api/colaboradores/extraer", generateLimiter, imageUpload.single("imag
     const base64 = req.file.buffer.toString("base64");
     const mime = req.file.mimetype as "image/png" | "image/jpeg" | "image/webp" | "image/gif";
     const t0 = Date.now();
-    const trabajador = await extractTrabajadorFromImage(base64, mime);
-    res.json({ trabajador, elapsedMs: Date.now() - t0 });
+    const { output, usage } = await extractTrabajadorFromImage(base64, mime);
+    res.json({ trabajador: output, elapsedMs: Date.now() - t0, usage });
   } catch (err) {
     console.error("[/api/colaboradores/extraer] error:", (err as Error).message);
     res.status(500).json({ error: (err as Error).message });
@@ -163,8 +164,8 @@ app.post("/api/cartas/clasificar", generateLimiter, async (req, res) => {
       return res.status(400).json({ error: "Campo 'conducta' requerido (mínimo 10 caracteres)" });
     }
     const t0 = Date.now();
-    const result = await classifyIncidente(body);
-    res.json({ ...result, elapsedMs: Date.now() - t0 });
+    const { output, usage } = await classifyIncidente(body);
+    res.json({ ...output, elapsedMs: Date.now() - t0, usage });
   } catch (err) {
     console.error("[/api/cartas/clasificar] error:", (err as Error).message);
     res.status(500).json({ error: (err as Error).message });
@@ -297,9 +298,8 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       templateUsed = { id: rec.id, label: rec.label, type: rec.type };
     }
 
-    const carta = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel });
+    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel });
     const elapsedMs = Date.now() - t0;
-    const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
     const persisted = await s.cartas.create({
       caseId: v.input.caseId,
@@ -310,7 +310,7 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       templateId: templateUsed?.id ?? null,
       templateLabel: templateUsed?.label ?? null,
       generatedBy: v.generatedBy ?? null,
-      model,
+      model: usage.model,
       elapsedMs,
       warningsCount: Array.isArray(carta.warnings) ? carta.warnings.length : 0,
       refused: Boolean(carta.refused),
@@ -318,7 +318,7 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       outputJson: carta,
     });
 
-    res.json({ carta, elapsedMs, templateUsed, persisted: { id: persisted.id, generatedAt: persisted.generatedAt } });
+    res.json({ carta, elapsedMs, templateUsed, usage, persisted: { id: persisted.id, generatedAt: persisted.generatedAt } });
   } catch (err) {
     const msg = (err as Error).message;
     console.error("[/api/cartas/generate] error:", msg);
@@ -367,9 +367,8 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
       templateUsed = { id: rec.id, label: rec.label, type: rec.type };
     }
 
-    const carta = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel });
+    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel });
     const elapsedMs = Date.now() - t0;
-    const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
     const persisted = await s.cartas.create({
       caseId: v.input.caseId,
@@ -380,7 +379,7 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
       templateId: templateUsed?.id ?? null,
       templateLabel: templateUsed?.label ?? null,
       generatedBy: v.generatedBy ?? null,
-      model,
+      model: usage.model,
       elapsedMs,
       warningsCount: Array.isArray(carta.warnings) ? carta.warnings.length : 0,
       refused: Boolean(carta.refused),
@@ -388,7 +387,7 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
       outputJson: carta,
     });
 
-    res.json({ carta, elapsedMs, templateUsed, persisted: { id: persisted.id, generatedAt: persisted.generatedAt } });
+    res.json({ carta, elapsedMs, templateUsed, usage, persisted: { id: persisted.id, generatedAt: persisted.generatedAt } });
   } catch (err) {
     const msg = (err as Error).message;
     console.error("[/api/cartas/generate-carta2] error:", msg);
