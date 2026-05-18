@@ -117,9 +117,28 @@ async function loadPrompt(name: string): Promise<string> {
 }
 
 function extractJson(text: string): unknown {
+  // 1) Bloque cercado completo ```json ... ```
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = (fenced ? fenced[1] : text).trim();
-  return JSON.parse(candidate);
+  if (fenced) {
+    return JSON.parse(fenced[1].trim());
+  }
+  // 2) Bloque cercado sin cierre (respuesta truncada por max_tokens):
+  //    captura desde ```json hasta el final, intenta cerrar braces y parsear.
+  const openOnly = text.match(/```(?:json)?\s*([\s\S]*)$/i);
+  if (openOnly) {
+    let candidate = openOnly[1].trim();
+    // Recortamos comentarios o texto residual fuera del último '}'
+    const lastBrace = candidate.lastIndexOf("}");
+    if (lastBrace > 0) candidate = candidate.slice(0, lastBrace + 1);
+    return JSON.parse(candidate);
+  }
+  // 3) Sin cercados: intenta encontrar el primer '{' y el último '}'
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first >= 0 && last > first) {
+    return JSON.parse(text.slice(first, last + 1));
+  }
+  return JSON.parse(text.trim());
 }
 
 function plantillaClienteBlock(text?: string, label?: string): string {
@@ -229,7 +248,7 @@ Reglas:
 
   const response = await client.messages.create({
     model,
-    max_tokens: 1024,
+    max_tokens: 2048,
     system,
     messages: [
       {
@@ -320,7 +339,7 @@ export async function classifyIncidente(input: ClasificacionInput): Promise<Clas
 
   const response = await client.messages.create({
     model,
-    max_tokens: 1024,
+    max_tokens: 2048,
     system,
     messages: [{ role: "user", content: userMessage }],
   });
