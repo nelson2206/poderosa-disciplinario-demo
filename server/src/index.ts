@@ -68,9 +68,11 @@ app.use(express.json({ limit: "1mb" }));
 // Auth: token compartido vía X-Pod-Token (o query ?token= para descargas)
 // ============================================================================
 const POD_API_TOKEN = process.env.POD_API_TOKEN || "";
-const AUTH_DISABLED = POD_API_TOKEN === "" || POD_API_TOKEN === "dev";
+const POD_AUTH_OFF = process.env.POD_AUTH_OFF === "1" || process.env.POD_AUTH_OFF === "true";
+const AUTH_DISABLED = POD_AUTH_OFF || POD_API_TOKEN === "" || POD_API_TOKEN === "dev";
 if (AUTH_DISABLED) {
-  console.warn("[poderosa-server] POD_API_TOKEN vacío o 'dev' — auth DESHABILITADO. NO USAR EN PRODUCCIÓN.");
+  const reason = POD_AUTH_OFF ? "POD_AUTH_OFF=1" : "POD_API_TOKEN vacío o 'dev'";
+  console.warn(`[poderosa-server] Auth DESHABILITADO (${reason}) — el API está abierto al público con rate-limit.`);
 }
 
 function requireToken(req: Request, res: Response, next: NextFunction) {

@@ -25,7 +25,13 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_KEY
         sync: false
-      # Token de acceso al API. Render generará uno seguro automáticamente si
-      # no lo introduces manualmente (generateValue: true).
+      # Token de acceso al API. Por defecto se autogenera, pero está
+      # DESACTIVADO mediante POD_AUTH_OFF=1 abajo (para una demo compartible
+      # sin que los usuarios tengan que pegar nada). Para reactivar auth,
+      # quita POD_AUTH_OFF y rota POD_API_TOKEN.
       - key: POD_API_TOKEN
         generateValue: true
+      # Mientras esté en "1", el middleware requireToken deja pasar todo
+      # (rate-limit sigue activo: 15 generaciones/min, 120 req/min globales).
+      - key: POD_AUTH_OFF
+        value: "1"
