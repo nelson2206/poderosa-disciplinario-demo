@@ -771,6 +771,7 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
     <div class="nav-section nav-grp" data-role="rrhh cartas" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">📜 Seguimiento de cartas</div>
     <nav class="nav nav-grp" data-role="rrhh cartas">
       <button class="nav-item" data-action="goto" data-view="historial"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Cartas creadas</button>
+      <button class="nav-item" data-action="goto" data-view="ejemplos"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></span>Ejemplos canónicos</button>
     </nav>
 
     <!-- Subsección: Configuración (visible solo para RR.HH.) -->
@@ -1824,6 +1825,17 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             </div>
           </div>
           <div id="nc-warnings" style="display:none;margin-top:14px;padding:12px 14px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:12px;color:var(--gray-text);"></div>
+          <div style="margin-top:14px;padding:14px 16px;background:var(--cream);border:1px solid var(--cream-dark);border-radius:8px;">
+            <div style="font-family:var(--font-head);font-size:11px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">¿Qué tal quedó esta carta?</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button class="btn" id="nc-feedback-up" style="font-size:14px;padding:6px 14px;">👍 Bien</button>
+              <button class="btn" id="nc-feedback-down" style="font-size:14px;padding:6px 14px;">👎 Mal</button>
+              <button class="btn" id="nc-feedback-exemplary" style="font-size:13px;padding:6px 14px;background:var(--gold-pale);color:var(--teal-dark);">⭐ Marcar como ejemplo canónico</button>
+              <input type="text" id="nc-feedback-text" placeholder="Comentario opcional: ¿qué editaste o falló?" style="flex:1;min-width:240px;padding:6px 10px;font-size:12px;border:1px solid var(--gray-line);border-radius:6px;">
+            </div>
+            <div id="nc-feedback-status" style="margin-top:6px;font-size:11px;color:var(--gray-muted);min-height:14px;"></div>
+          </div>
+
           <div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px;">
             <button class="btn" data-nc-prev="3">← Atrás (regenerar)</button>
             <button class="btn primary" id="nc-guardar-btn" style="background:var(--teal);">Guardar en Historial</button>
@@ -1900,11 +1912,30 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
         <div class="card" style="margin-top:14px;">
           <div class="card-header"><h2>Cartas registradas</h2><span id="h-count" style="margin-left:auto;font-size:11px;color:var(--gray-muted);">0 registros</span></div>
           <table class="cases-table">
-            <thead><tr><th>Fecha</th><th>Caso</th><th>Trabajador · Unidad</th><th>Tipo</th><th>Plantilla</th><th>Estado</th><th>Modelo · ms</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Caso</th><th>Trabajador · Unidad</th><th>Tipo</th><th>Plantilla</th><th>Estado</th><th>Feedback</th><th>Modelo · ms</th><th>Acciones</th></tr></thead>
             <tbody id="h-tbody">
-              <tr><td colspan="8" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Cargando…</td></tr>
+              <tr><td colspan="9" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Cargando…</td></tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: EJEMPLOS CANÓNICOS (admin / Legal) ===== -->
+      <section class="view" id="view-ejemplos">
+        <div class="greeting"><h1>⭐ Ejemplos canónicos</h1><p>Cartas que Legal aprobó como referencia. <strong>El motor de IA las usa como few-shot examples</strong> en cada generación nueva del mismo tipo — el modelo calca su estilo y rigor jurídico. Aquí puedes verlas, ver de quién vinieron, y darlas de baja si dejan de aplicar.</p></div>
+
+        <div class="card" style="margin-top:14px;">
+          <div class="card-header"><h2>Cartas marcadas como ejemplo</h2><span id="ej-count" style="margin-left:auto;font-size:11px;color:var(--gray-muted);">0 ejemplos</span></div>
+          <table class="cases-table">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Trabajador · Unidad</th><th>Rating</th><th>Comentario</th><th>Validada Legal</th><th>Acciones</th></tr></thead>
+            <tbody id="ej-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:14px;font-size:11.5px;color:var(--gray-muted);padding:12px 16px;background:var(--gold-50);border:1px solid var(--gold-light);border-radius:8px;">
+          <strong style="color:var(--teal);">¿Cómo añadir un ejemplo?</strong> Ve a <em>Cartas creadas</em>, encuentra una carta bien redactada, dale <strong>👍</strong> + marca <strong>"Ejemplo canónico"</strong>. Se sumará automáticamente al few-shot del modelo en las próximas generaciones del mismo tipo. Recomendamos 2–3 ejemplos por tipo (más no aporta y aumenta tokens).
         </div>
       </section>
 
@@ -3012,7 +3043,7 @@ function renderHistorial(cartas) {
   if (countEl) countEl.textContent = `${cartas.length} registros`;
   if (!tbody) return;
   if (cartas.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">No hay cartas generadas con esos filtros.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">No hay cartas generadas con esos filtros.</td></tr>`;
     return;
   }
   tbody.innerHTML = cartas.map(c => {
@@ -3020,6 +3051,9 @@ function renderHistorial(cartas) {
     const tpl = c.templateLabel ? escapeHtml(c.templateLabel) : '<em style="color:var(--gray-muted);">canónica</em>';
     const estadoColor = ESTADO_COLOR[c.estado] || "var(--gray-muted)";
     const warnPill = c.warningsCount > 0 ? `<span title="${c.warningsCount} advertencias" style="margin-left:6px;font-size:9.5px;background:var(--orange);color:white;padding:1px 6px;border-radius:9px;">⚠ ${c.warningsCount}</span>` : "";
+    const upPressed = c.rating === 1 ? "background:var(--green);color:white;" : "background:transparent;color:var(--gray-muted);";
+    const downPressed = c.rating === -1 ? "background:var(--terracotta);color:white;" : "background:transparent;color:var(--gray-muted);";
+    const exemplaryPressed = c.isExemplary ? "background:var(--gold);color:var(--teal-dark);" : "background:transparent;color:var(--gray-muted);";
     return `
       <tr>
         <td style="font-size:11px;color:var(--gray-muted);">${formatDate(c.generatedAt)}</td>
@@ -3028,6 +3062,13 @@ function renderHistorial(cartas) {
         <td>${tipo}${warnPill}</td>
         <td style="font-size:11px;">${tpl}</td>
         <td><span style="font-size:10.5px;font-family:var(--font-head);letter-spacing:1px;color:white;background:${estadoColor};padding:3px 8px;border-radius:10px;text-transform:uppercase;">${c.estado}</span></td>
+        <td>
+          <button class="btn" data-h-rate="${c.id}" data-h-rate-value="1" title="Buena carta" style="font-size:13px;padding:2px 6px;${upPressed}border:1px solid var(--gray-line);">👍</button>
+          <button class="btn" data-h-rate="${c.id}" data-h-rate-value="-1" title="Mala carta" style="font-size:13px;padding:2px 6px;${downPressed}border:1px solid var(--gray-line);">👎</button>
+          <button class="btn" data-h-exemplary="${c.id}" data-h-exemplary-value="${c.isExemplary ? 'false' : 'true'}" title="Ejemplo canónico" style="font-size:11px;padding:2px 6px;${exemplaryPressed}border:1px solid var(--gray-line);">⭐</button>
+          <button class="btn" data-h-comment="${c.id}" title="Añadir comentario" style="font-size:11px;padding:2px 6px;background:transparent;color:var(--gray-muted);border:1px solid var(--gray-line);">💬</button>
+          ${c.feedbackText ? `<div style="font-size:10px;color:var(--gray-muted);margin-top:4px;max-width:160px;" title="${escapeHtml(c.feedbackText)}">${escapeHtml(c.feedbackText.slice(0,40))}${c.feedbackText.length>40?'…':''}</div>` : ''}
+        </td>
         <td style="font-size:11px;color:var(--gray-muted);">${escapeHtml(c.model)}<br>${c.elapsedMs} ms</td>
         <td>
           <button class="btn" data-h-load="${c.id}" style="font-size:10.5px;padding:4px 9px;">Cargar preview</button>
@@ -3043,6 +3084,31 @@ function renderHistorial(cartas) {
   }).join("");
   tbody.querySelectorAll("[data-h-load]").forEach(b => b.addEventListener("click", () => loadCartaInPreview(b.dataset.hLoad)));
   tbody.querySelectorAll("[data-h-estado]").forEach(s => s.addEventListener("change", () => updateCartaEstado(s.dataset.hEstado, s.value)));
+  tbody.querySelectorAll("[data-h-rate]").forEach(b => b.addEventListener("click", () => updateCartaFeedback(b.dataset.hRate, { rating: Number(b.dataset.hRateValue) })));
+  tbody.querySelectorAll("[data-h-exemplary]").forEach(b => b.addEventListener("click", () => updateCartaFeedback(b.dataset.hExemplary, { isExemplary: b.dataset.hExemplaryValue === "true" })));
+  tbody.querySelectorAll("[data-h-comment]").forEach(b => b.addEventListener("click", () => {
+    const txt = window.prompt("Comentario sobre esta carta (qué editaste, qué falló, qué te gustó):");
+    if (txt !== null) updateCartaFeedback(b.dataset.hComment, { feedbackText: txt });
+  }));
+}
+
+async function updateCartaFeedback(id, patch) {
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${id}/feedback`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `HTTP ${res.status}`); }
+    if (typeof showToast === "function") {
+      const m = patch.rating === 1 ? "👍 marcado" : patch.rating === -1 ? "👎 marcado" : patch.isExemplary !== undefined ? (patch.isExemplary ? "⭐ Ejemplo canónico añadido" : "Quitado de ejemplos") : "Feedback guardado";
+      showToast(m);
+    }
+    await refreshHistorial();
+    if (document.getElementById("view-ejemplos")?.classList.contains("active")) await refreshEjemplos();
+  } catch (err) {
+    if (typeof showToast === "function") showToast(`Error: ${err.message}`);
+  }
 }
 
 async function refreshHistorial() {
@@ -3097,6 +3163,57 @@ const hRefreshBtn = document.getElementById("h-refresh");
 if (hRefreshBtn) hRefreshBtn.addEventListener("click", refreshHistorial);
 loadStoragePill();
 refreshHistorial();
+
+// ====== Ejemplos canónicos ======
+async function refreshEjemplos() {
+  const tbody = document.getElementById("ej-tbody");
+  const countEl = document.getElementById("ej-count");
+  if (!tbody) return;
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/exemplary`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const cartas = data.cartas || [];
+    if (countEl) countEl.textContent = `${cartas.length} ejemplo${cartas.length === 1 ? "" : "s"}`;
+    if (cartas.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--gray-muted);font-size:12px;padding:18px;">Aún no hay ejemplos canónicos. Ve a 'Cartas creadas', dale 👍 + ⭐ a una bien redactada.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = cartas.map(c => {
+      const tipo = escapeHtml(CARTA_TIPO_LABEL[c.tipo] || c.tipo);
+      const ratingIcon = c.rating === 1 ? "👍" : c.rating === -1 ? "👎" : "—";
+      return `
+        <tr>
+          <td style="font-size:11px;color:var(--gray-muted);">${formatDate(c.generatedAt)}</td>
+          <td>${tipo}</td>
+          <td>${escapeHtml(c.trabajadorNombre)}<br><span style="font-size:10.5px;color:var(--gray-muted);">${escapeHtml(c.unidad)}</span></td>
+          <td style="text-align:center;font-size:16px;">${ratingIcon}</td>
+          <td style="font-size:11px;color:var(--gray-muted);">${c.feedbackText ? escapeHtml(c.feedbackText.slice(0, 120)) + (c.feedbackText.length > 120 ? '…' : '') : '<em>—</em>'}</td>
+          <td style="text-align:center;">${c.validatedByLegal ? '<span style="color:var(--green);font-weight:600;">✓ Sí</span>' : '<span style="color:var(--gray-muted);">No</span>'}</td>
+          <td>
+            <button class="btn" data-ej-load="${c.id}" style="font-size:10.5px;padding:4px 9px;">Ver</button>
+            <button class="btn" data-ej-remove="${c.id}" style="font-size:10.5px;padding:4px 9px;color:var(--terracotta);">Quitar</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+    tbody.querySelectorAll("[data-ej-load]").forEach(b => b.addEventListener("click", () => loadCartaInPreview(b.dataset.ejLoad)));
+    tbody.querySelectorAll("[data-ej-remove]").forEach(b => b.addEventListener("click", () => {
+      if (confirm("¿Quitar esta carta de los ejemplos canónicos? El modelo dejará de usarla como referencia en futuras generaciones.")) {
+        updateCartaFeedback(b.dataset.ejRemove, { isExemplary: false });
+      }
+    }));
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--terracotta);font-size:12px;padding:18px;">Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+// Refresh al entrar a la vista
+const ejObserver = new MutationObserver(() => {
+  if (document.getElementById("view-ejemplos")?.classList.contains("active")) refreshEjemplos();
+});
+const viewEj = document.getElementById("view-ejemplos");
+if (viewEj) ejObserver.observe(viewEj, { attributes: true, attributeFilter: ["class"] });
 
 // ====== Drag & drop evidencia ======
 function setupDrop(id) {
@@ -3870,6 +3987,7 @@ async function ncGenerar() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     ncState.cartaOutput = data.carta;
+    ncState.persistedId = data.persisted?.id || null;
     status.style.color = "var(--green)";
     status.textContent = `✓ Generada en ${data.elapsedMs} ms · tipo: ${tipo}`;
     ncRenderPaso4();
@@ -4010,6 +4128,41 @@ document.getElementById("nc-export-docx")?.addEventListener("click", () => {
 });
 
 // ====== Guardar en historial (re-llama el endpoint para que persista la versión editada) ======
+async function ncSendFeedback(patch) {
+  const id = ncState.persistedId;
+  if (!id) {
+    const st = document.getElementById("nc-feedback-status");
+    if (st) { st.textContent = "La carta aún no se ha persistido. Primero regenera."; st.style.color = "var(--terracotta)"; }
+    return;
+  }
+  const txt = document.getElementById("nc-feedback-text")?.value?.trim();
+  if (txt) patch.feedbackText = txt;
+  // Si edité el output en el editor inline, lo persistimos como final_edited_output
+  if (ncState.cartaOutput) patch.finalEditedOutput = ncState.cartaOutput;
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${id}/feedback`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) { const d = await res.json().catch(()=>({})); throw new Error(d.error || `HTTP ${res.status}`); }
+    const st = document.getElementById("nc-feedback-status");
+    if (st) {
+      st.style.color = "var(--green)";
+      st.textContent = patch.isExemplary ? "⭐ Carta añadida como ejemplo canónico — el modelo la usará en futuras generaciones del mismo tipo."
+        : patch.rating === 1 ? "👍 Feedback guardado. Útil para que Legal la valide después."
+        : patch.rating === -1 ? "👎 Anotado. Revisa qué falló y refina el prompt en CLAUDE.md."
+        : "Comentario guardado.";
+    }
+  } catch (err) {
+    const st = document.getElementById("nc-feedback-status");
+    if (st) { st.textContent = `Error: ${err.message}`; st.style.color = "var(--terracotta)"; }
+  }
+}
+document.getElementById("nc-feedback-up")?.addEventListener("click", () => ncSendFeedback({ rating: 1 }));
+document.getElementById("nc-feedback-down")?.addEventListener("click", () => ncSendFeedback({ rating: -1 }));
+document.getElementById("nc-feedback-exemplary")?.addEventListener("click", () => ncSendFeedback({ isExemplary: true, validatedByLegal: true }));
+
 document.getElementById("nc-guardar-btn")?.addEventListener("click", async () => {
   if (typeof showToast === "function") showToast("✓ Borrador guardado en Historial.");
   // La carta ya está persistida desde el primer generate (se guardó en /api/cartas/generate(-carta2)).

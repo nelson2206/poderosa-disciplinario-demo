@@ -109,17 +109,35 @@ export type CartaRecord = {
   inputJson: unknown;
   /** Salida estructurada del modelo (lo que pinta el preview). */
   outputJson: unknown;
+  // Feedback / mejora continua
+  rating?: number | null;                // -1 / 0 / 1
+  feedbackText?: string | null;
+  validatedByLegal?: boolean;
+  isExemplary?: boolean;
+  finalEditedOutput?: unknown | null;
+  feedbackBy?: string | null;
+  feedbackAt?: string | null;
 };
 
 export type CartaCreateInput = Omit<CartaRecord, "id" | "generatedAt" | "estado"> & {
   estado?: CartaEstado;
 };
 
+export type CartaFeedbackInput = {
+  rating?: number | null;
+  feedbackText?: string | null;
+  validatedByLegal?: boolean;
+  isExemplary?: boolean;
+  finalEditedOutput?: unknown | null;
+  feedbackBy?: string | null;
+};
+
 export interface CartaStorage {
-  list(filter?: { caseId?: string; tipo?: CartaTipo; limit?: number }): Promise<CartaRecord[]>;
+  list(filter?: { caseId?: string; tipo?: CartaTipo; limit?: number; exemplary?: boolean }): Promise<CartaRecord[]>;
   get(id: string): Promise<CartaRecord | null>;
   create(input: CartaCreateInput): Promise<CartaRecord>;
   updateEstado(id: string, estado: CartaEstado): Promise<CartaRecord | null>;
+  updateFeedback(id: string, feedback: CartaFeedbackInput): Promise<CartaRecord | null>;
 }
 
 export interface Storage {

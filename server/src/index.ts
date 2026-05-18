@@ -298,7 +298,16 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       templateUsed = { id: rec.id, label: rec.label, type: rec.type };
     }
 
-    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel });
+    // Few-shot: tomar hasta 3 cartas marcadas como ejemplares del mismo tipo
+    const exemplaryList = await s.cartas.list({ exemplary: true, tipo: "carta1", limit: 3 });
+    const exemplary = exemplaryList
+      .filter((c) => c.validatedByLegal === true || (c.rating ?? 0) >= 1)
+      .map((c) => ({
+        caseSummary: `Trabajador ${c.trabajadorNombre} · Unidad ${c.unidad} · ${(c.inputJson as { conducta?: string })?.conducta?.slice(0, 200) ?? ""}`,
+        outputJson: c.finalEditedOutput ?? c.outputJson,
+      }));
+
+    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({
@@ -367,7 +376,16 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
       templateUsed = { id: rec.id, label: rec.label, type: rec.type };
     }
 
-    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel });
+    // Few-shot: ejemplares del mismo subtipo de Carta 2
+    const exemplaryList = await s.cartas.list({ exemplary: true, tipo: v.input.tipo, limit: 3 });
+    const exemplary = exemplaryList
+      .filter((c) => c.validatedByLegal === true || (c.rating ?? 0) >= 1)
+      .map((c) => ({
+        caseSummary: `Trabajador ${c.trabajadorNombre} · ${c.unidad} · ${(c.inputJson as { hechosImputados?: string })?.hechosImputados?.slice(0, 200) ?? ""}`,
+        outputJson: c.finalEditedOutput ?? c.outputJson,
+      }));
+
+    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({
@@ -416,6 +434,42 @@ app.get("/api/cartas/:id", async (req, res) => {
     const rec = await s.cartas.get(req.params.id);
     if (!rec) return res.status(404).json({ error: "No encontrada" });
     res.json({ carta: rec });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get("/api/cartas/exemplary", async (req, res) => {
+  try {
+    const s = await getStorage();
+    const tipo = typeof req.query.tipo === "string" ? (req.query.tipo as CartaTipo) : undefined;
+    const limit = req.query.limit ? Math.min(20, Number(req.query.limit)) : 5;
+    const list = await s.cartas.list({ exemplary: true, tipo, limit });
+    // Solo con rating positivo o validados por Legal
+    const filtered = list.filter((c) => c.validatedByLegal === true || (c.rating ?? 0) >= 1);
+    const summaries = filtered.map(({ inputJson: _i, outputJson: _o, finalEditedOutput: _f, ...rest }) => rest);
+    res.json({ cartas: summaries });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.patch("/api/cartas/:id/feedback", async (req, res) => {
+  try {
+    const body = req.body || {};
+    const allowed = ["rating", "feedbackText", "validatedByLegal", "isExemplary", "finalEditedOutput", "feedbackBy"];
+    const patch: Record<string, unknown> = {};
+    for (const k of allowed) if (k in body) patch[k] = body[k];
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ error: "Sin campos a actualizar" });
+    }
+    if (patch.rating !== undefined && patch.rating !== null && ![-1, 0, 1].includes(patch.rating as number)) {
+      return res.status(400).json({ error: "rating debe ser -1, 0 o 1" });
+    }
+    const s = await getStorage();
+    const updated = await s.cartas.updateFeedback(req.params.id, patch);
+    if (!updated) return res.status(404).json({ error: "No encontrada" });
+    res.json({ carta: updated });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

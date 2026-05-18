@@ -68,6 +68,26 @@ create index if not exists cartas_generated_at_idx on public.cartas_generadas(ge
 create index if not exists cartas_tipo_idx on public.cartas_generadas(tipo);
 
 -- =============================================================================
+-- Migración: columnas de feedback / mejora continua (idempotente)
+-- =============================================================================
+-- rating: -1 (mala), 0 (neutra), 1 (buena). Default NULL = sin valoración.
+alter table public.cartas_generadas add column if not exists rating smallint;
+-- Texto libre del revisor sobre qué mejoraría o qué editó
+alter table public.cartas_generadas add column if not exists feedback_text text;
+-- Bandera explícita: Legal revisó y validó la carta para uso real
+alter table public.cartas_generadas add column if not exists validated_by_legal boolean not null default false;
+-- Bandera: marca esta carta como "ejemplo canónico" para que el modelo la use como few-shot
+alter table public.cartas_generadas add column if not exists is_exemplary boolean not null default false;
+-- Output final tras edición humana (lo que realmente se notificó)
+alter table public.cartas_generadas add column if not exists final_edited_output jsonb;
+-- Quién dejó el feedback
+alter table public.cartas_generadas add column if not exists feedback_by text;
+alter table public.cartas_generadas add column if not exists feedback_at timestamptz;
+
+create index if not exists cartas_exemplary_idx on public.cartas_generadas(is_exemplary) where is_exemplary = true;
+create index if not exists cartas_rating_idx on public.cartas_generadas(rating) where rating is not null;
+
+-- =============================================================================
 -- Storage bucket: "templates"
 -- =============================================================================
 -- Crea el bucket donde se guardan los archivos físicos de las plantillas.

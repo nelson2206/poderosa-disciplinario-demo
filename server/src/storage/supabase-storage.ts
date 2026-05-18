@@ -10,6 +10,7 @@ import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import type {
   CartaCreateInput,
   CartaEstado,
+  CartaFeedbackInput,
   CartaRecord,
   CartaStorage,
   CartaTipo,
@@ -100,6 +101,13 @@ type CartaRow = {
   refused: boolean;
   input_json: unknown;
   output_json: unknown;
+  rating: number | null;
+  feedback_text: string | null;
+  validated_by_legal: boolean;
+  is_exemplary: boolean;
+  final_edited_output: unknown | null;
+  feedback_by: string | null;
+  feedback_at: string | null;
 };
 
 function rowToCarta(r: CartaRow): CartaRecord {
@@ -121,6 +129,13 @@ function rowToCarta(r: CartaRow): CartaRecord {
     refused: r.refused,
     inputJson: r.input_json,
     outputJson: r.output_json,
+    rating: r.rating,
+    feedbackText: r.feedback_text,
+    validatedByLegal: r.validated_by_legal,
+    isExemplary: r.is_exemplary,
+    finalEditedOutput: r.final_edited_output,
+    feedbackBy: r.feedback_by,
+    feedbackAt: r.feedback_at,
   };
 }
 
@@ -226,6 +241,7 @@ const supabaseCartas: CartaStorage = {
     let q = sb.from("cartas_generadas").select("*").order("generated_at", { ascending: false });
     if (filter?.caseId) q = q.eq("case_id", filter.caseId);
     if (filter?.tipo) q = q.eq("tipo", filter.tipo);
+    if (filter?.exemplary) q = q.eq("is_exemplary", true);
     if (filter?.limit) q = q.limit(filter.limit);
     const { data, error } = await q;
     if (error) throw new Error(error.message);
@@ -268,6 +284,25 @@ const supabaseCartas: CartaStorage = {
     const { data, error } = await sb
       .from("cartas_generadas")
       .update({ estado })
+      .eq("id", id)
+      .select("*")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? rowToCarta(data as CartaRow) : null;
+  },
+
+  async updateFeedback(id, feedback: CartaFeedbackInput) {
+    const sb = getClient();
+    const patch: Record<string, unknown> = { feedback_at: new Date().toISOString() };
+    if (feedback.rating !== undefined) patch.rating = feedback.rating;
+    if (feedback.feedbackText !== undefined) patch.feedback_text = feedback.feedbackText;
+    if (feedback.validatedByLegal !== undefined) patch.validated_by_legal = feedback.validatedByLegal;
+    if (feedback.isExemplary !== undefined) patch.is_exemplary = feedback.isExemplary;
+    if (feedback.finalEditedOutput !== undefined) patch.final_edited_output = feedback.finalEditedOutput;
+    if (feedback.feedbackBy !== undefined) patch.feedback_by = feedback.feedbackBy;
+    const { data, error } = await sb
+      .from("cartas_generadas")
+      .update(patch)
       .eq("id", id)
       .select("*")
       .maybeSingle();

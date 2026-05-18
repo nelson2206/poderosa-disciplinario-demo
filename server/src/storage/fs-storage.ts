@@ -11,6 +11,7 @@ import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import type {
   CartaCreateInput,
   CartaEstado,
+  CartaFeedbackInput,
   CartaRecord,
   CartaStorage,
   CartaTipo,
@@ -148,6 +149,7 @@ const fsCartas: CartaStorage = {
     let all = await readJsonArray<CartaRecord>(CARTAS_INDEX);
     if (filter?.caseId) all = all.filter((c) => c.caseId === filter.caseId);
     if (filter?.tipo) all = all.filter((c) => c.tipo === filter.tipo);
+    if (filter?.exemplary) all = all.filter((c) => c.isExemplary === true);
     all.sort((a, b) => (a.generatedAt < b.generatedAt ? 1 : -1));
     if (filter?.limit) all = all.slice(0, filter.limit);
     return all;
@@ -164,6 +166,13 @@ const fsCartas: CartaStorage = {
       id: randomUUID(),
       generatedAt: new Date().toISOString(),
       estado: input.estado || "borrador",
+      rating: null,
+      feedbackText: null,
+      validatedByLegal: false,
+      isExemplary: false,
+      finalEditedOutput: null,
+      feedbackBy: null,
+      feedbackAt: null,
     };
     const all = await readJsonArray<CartaRecord>(CARTAS_INDEX);
     all.push(record);
@@ -176,6 +185,22 @@ const fsCartas: CartaStorage = {
     const idx = all.findIndex((c) => c.id === id);
     if (idx < 0) return null;
     all[idx].estado = estado;
+    await writeJsonArray(CARTAS_INDEX, all);
+    return all[idx];
+  },
+
+  async updateFeedback(id, feedback: CartaFeedbackInput) {
+    const all = await readJsonArray<CartaRecord>(CARTAS_INDEX);
+    const idx = all.findIndex((c) => c.id === id);
+    if (idx < 0) return null;
+    const now = new Date().toISOString();
+    if (feedback.rating !== undefined) all[idx].rating = feedback.rating;
+    if (feedback.feedbackText !== undefined) all[idx].feedbackText = feedback.feedbackText;
+    if (feedback.validatedByLegal !== undefined) all[idx].validatedByLegal = feedback.validatedByLegal;
+    if (feedback.isExemplary !== undefined) all[idx].isExemplary = feedback.isExemplary;
+    if (feedback.finalEditedOutput !== undefined) all[idx].finalEditedOutput = feedback.finalEditedOutput;
+    if (feedback.feedbackBy !== undefined) all[idx].feedbackBy = feedback.feedbackBy;
+    all[idx].feedbackAt = now;
     await writeJsonArray(CARTAS_INDEX, all);
     return all[idx];
   },

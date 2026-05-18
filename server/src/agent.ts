@@ -207,23 +207,53 @@ function plantillaClienteBlock(text?: string, label?: string): string {
 // Carta 1
 // =============================================================================
 
+/** Few-shot examples curados por Legal — se inyectan al prompt para que el
+ *  modelo calque el estilo aprobado. La función `fetchExemplary` viene del
+ *  llamador (storage); aquí solo recibimos los strings ya serializados. */
+function exemplaryBlock(exemplary?: { caseSummary: string; outputJson: unknown }[]): string {
+  if (!exemplary || exemplary.length === 0) return "";
+  const items = exemplary.slice(0, 3).map((ex, i) => {
+    return [
+      `### Ejemplo ${i + 1} — aprobado por Legal de Poderosa`,
+      "**Caso (resumen):**",
+      ex.caseSummary,
+      "",
+      "**Carta final aprobada (JSON):**",
+      "```json",
+      JSON.stringify(ex.outputJson, null, 2),
+      "```",
+    ].join("\n");
+  }).join("\n\n---\n\n");
+  return [
+    "",
+    "## Ejemplos canónicos validados por Legal (calca este estilo y rigor)",
+    items,
+    "",
+  ].join("\n");
+}
+
 export async function generateCarta1(
   input: Carta1Input,
-  options: { plantillaClienteTexto?: string; plantillaClienteLabel?: string } = {}
+  options: {
+    plantillaClienteTexto?: string;
+    plantillaClienteLabel?: string;
+    exemplary?: { caseSummary: string; outputJson: unknown }[];
+  } = {}
 ): Promise<{ output: Carta1Output; usage: ModelUsage }> {
   const client = buildClient();
   const system = await loadPrompt("system.md");
   const plantilla = await loadPrompt("carta1.md");
 
-  // El prefijo cacheable contiene la plantilla canónica y opcionalmente la
-  // plantilla del cliente. Se reutiliza entre llamadas del MISMO tipo de carta,
-  // ahorrando ~90% en input tokens a partir de la 2ª llamada (cache TTL ~5 min).
+  // El prefijo cacheable contiene la plantilla canónica, plantilla del cliente
+  // y few-shot examples de Legal. Se reutiliza entre llamadas del MISMO tipo
+  // de carta, ahorrando ~90% en input tokens a partir de la 2ª (cache TTL ~5 min).
   const cacheablePrefix = [
     "Redacta el borrador de Carta 1 (Imputación) para el siguiente caso. Sigue estrictamente la plantilla y devuelve únicamente el JSON especificado.",
     "",
     "## Plantilla canónica (referencia mínima de Legal)",
     plantilla,
     plantillaClienteBlock(options.plantillaClienteTexto, options.plantillaClienteLabel),
+    exemplaryBlock(options.exemplary),
   ].join("\n");
 
   const variablePart = [
@@ -393,7 +423,11 @@ export async function classifyIncidente(input: ClasificacionInput): Promise<{ ou
 
 export async function generateCarta2(
   input: Carta2Input,
-  options: { plantillaClienteTexto?: string; plantillaClienteLabel?: string } = {}
+  options: {
+    plantillaClienteTexto?: string;
+    plantillaClienteLabel?: string;
+    exemplary?: { caseSummary: string; outputJson: unknown }[];
+  } = {}
 ): Promise<{ output: Carta2Output; usage: ModelUsage }> {
   const client = buildClient();
   const system = await loadPrompt("system.md");
@@ -405,6 +439,7 @@ export async function generateCarta2(
     "## Plantilla canónica (referencia mínima de Legal)",
     plantilla,
     plantillaClienteBlock(options.plantillaClienteTexto, options.plantillaClienteLabel),
+    exemplaryBlock(options.exemplary),
   ].join("\n");
 
   const variablePart = ["## Datos del caso", "```json", JSON.stringify(input, null, 2), "```"].join("\n");
