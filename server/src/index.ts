@@ -428,27 +428,27 @@ app.get("/api/cartas", async (req, res) => {
   }
 });
 
-app.get("/api/cartas/:id", async (req, res) => {
-  try {
-    const s = await getStorage();
-    const rec = await s.cartas.get(req.params.id);
-    if (!rec) return res.status(404).json({ error: "No encontrada" });
-    res.json({ carta: rec });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
-  }
-});
-
+// IMPORTANTE: /exemplary debe ir ANTES de /:id, si no Express interpreta "exemplary" como un id.
 app.get("/api/cartas/exemplary", async (req, res) => {
   try {
     const s = await getStorage();
     const tipo = typeof req.query.tipo === "string" ? (req.query.tipo as CartaTipo) : undefined;
     const limit = req.query.limit ? Math.min(20, Number(req.query.limit)) : 5;
     const list = await s.cartas.list({ exemplary: true, tipo, limit });
-    // Solo con rating positivo o validados por Legal
     const filtered = list.filter((c) => c.validatedByLegal === true || (c.rating ?? 0) >= 1);
     const summaries = filtered.map(({ inputJson: _i, outputJson: _o, finalEditedOutput: _f, ...rest }) => rest);
     res.json({ cartas: summaries });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get("/api/cartas/:id", async (req, res) => {
+  try {
+    const s = await getStorage();
+    const rec = await s.cartas.get(req.params.id);
+    if (!rec) return res.status(404).json({ error: "No encontrada" });
+    res.json({ carta: rec });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
