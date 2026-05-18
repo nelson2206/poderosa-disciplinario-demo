@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#1F4D5C">
 <!-- URL del backend de IA. Para producción (GitHub Pages, etc.), reemplaza por la URL completa, p.ej. "https://poderosa-api.onrender.com". Si va vacío, el front usa el mismo origin (modo local: el server Express sirve este HTML). -->
 <meta name="poderosa-api-base" content="">
+<!-- Token de auth inyectado server-side por Express en producción. Si está vacío, el front pide token al usuario (modo legacy). -->
+<meta name="poderosa-token-inline" content="__POD_API_TOKEN__">
 <!-- Biblioteca para exportar el preview de carta a PDF (cliente-side, sin servidor adicional) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
 <title>Sistema de Gestión Disciplinaria — Compañía Minera Poderosa</title>
@@ -2355,7 +2357,7 @@ const userMapEarly = {
   cartas: { av: "IA", name: "Generador IA",     role: "Modo cartas · Claude",       avClass: "rrhh" },
 };
 const userMap = userMapEarly;
-const defaultByRole = { super: "dashboard", rrhh: "seguimiento", work: "login", cartas: "plantillas" };
+const defaultByRole = { super: "dashboard", rrhh: "seguimiento", work: "login", cartas: "nueva-carta" };
 
 function enterRole(role) {
   document.body.classList.remove("role-select-mode");
@@ -2476,9 +2478,20 @@ function setPodToken(t) {
   else localStorage.removeItem(POD_TOKEN_KEY);
 }
 
-// Auto-login: si el URL incluye #t=TOKEN, lo guardamos y limpiamos el hash.
-// Pensado para bookmarks compartibles del tipo
-// https://poderosa-disciplinario.onrender.com/#t=ABC123
+// Auto-login 1: token inyectado server-side en el meta tag
+// (Express lo reemplaza al servir index.html). Producción: cero prompts.
+(function bootstrapTokenFromMeta() {
+  const meta = document.querySelector('meta[name="poderosa-token-inline"]');
+  if (!meta) return;
+  const t = (meta.content || "").trim();
+  // El placeholder __POD_API_TOKEN__ se mantiene si la inyección no se aplicó
+  // (p.ej. servidor de archivos estáticos puro). En ese caso, no hacemos nada.
+  if (t && t !== "__POD_API_TOKEN__" && t !== "PLACEHOLDER") {
+    setPodToken(t);
+  }
+})();
+
+// Auto-login 2: si el URL incluye #t=TOKEN (bookmarks compartibles), lo guardamos y limpiamos.
 (function captureTokenFromUrl() {
   const hash = location.hash || "";
   const m = hash.match(/[#&]t=([^&]+)/);

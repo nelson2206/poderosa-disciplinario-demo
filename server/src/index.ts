@@ -439,6 +439,24 @@ app.patch("/api/cartas/:id/estado", async (req, res) => {
 // Static
 // ============================================================================
 
+// Sirve index.html con el POD_API_TOKEN inyectado en el meta tag, de modo que
+// el frontend nunca tenga que pedir al usuario que pegue el token. El placeholder
+// "__POD_API_TOKEN__" se reemplaza por el valor real (o por cadena vacía si auth
+// está deshabilitado en dev).
+async function serveIndexInjected(_req: express.Request, res: express.Response, next: express.NextFunction) {
+  try {
+    const indexPath = resolve(STATIC_DIR, "index.html");
+    const html = await import("node:fs/promises").then(m => m.readFile(indexPath, "utf-8"));
+    const token = (process.env.POD_API_TOKEN || "").replace(/"/g, "&quot;");
+    const injected = html.replace('content="__POD_API_TOKEN__"', `content="${token}"`);
+    res.set("Cache-Control", "no-store").type("html").send(injected);
+  } catch (err) {
+    next();
+  }
+}
+app.get("/", serveIndexInjected);
+app.get("/index.html", serveIndexInjected);
+
 app.use(express.static(STATIC_DIR));
 
 app.listen(PORT, async () => {
