@@ -261,7 +261,7 @@ button:focus-visible, .nav-item:focus-visible, .tab:focus-visible, .action-btn:f
 .preview-paper .signature{margin-top:42px;text-align:center;font-size:12.5px}
 .preview-paper .signature .line{border-top:1px solid #555;width:240px;margin:0 auto 4px}
 .preview-paper .annex{margin-top:26px;padding-top:14px;border-top:1px dashed #aaa;font-size:11.5px;color:#555}
-.preview-paper mark{background:var(--gold-pale);color:var(--teal);padding:1px 2px;border-radius:2px}
+.preview-paper mark{background:transparent;color:inherit;padding:0;border-radius:0}
 
 .footer-bar{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
 .btn{padding:9px 16px;border-radius:6px;font-family:var(--font-head);font-size:11px;letter-spacing:.8px;text-transform:uppercase;border:1px solid var(--gray-line);background:var(--white);color:var(--teal);cursor:pointer}
@@ -4117,7 +4117,7 @@ document.getElementById("nc-export-pdf")?.addEventListener("click", () => {
 document.getElementById("nc-export-docx")?.addEventListener("click", () => {
   const root = document.getElementById("nc-preview-paper");
   if (!root || !ncState.cartaOutput) return;
-  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Carta</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}mark{background:#FFF1B3;}</style></head><body>${root.innerHTML}</body></html>`;
+  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Carta</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}mark{background:transparent;}</style></head><body>${root.innerHTML}</body></html>`;
   const blob = new Blob(["﻿" + html], { type: "application/msword" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
