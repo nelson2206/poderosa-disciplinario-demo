@@ -163,7 +163,7 @@ async function callModel(system: string, userMessage: string): Promise<string> {
 
   const response = await client.messages.create({
     model,
-    max_tokens: 2048,
+    max_tokens: 4096,
     system,
     messages: [{ role: "user", content: userMessage }],
   });
@@ -248,7 +248,7 @@ Reglas:
 
   const response = await client.messages.create({
     model,
-    max_tokens: 2048,
+    max_tokens: 4096,
     system,
     messages: [
       {
@@ -339,7 +339,7 @@ export async function classifyIncidente(input: ClasificacionInput): Promise<Clas
 
   const response = await client.messages.create({
     model,
-    max_tokens: 2048,
+    max_tokens: 4096,
     system,
     messages: [{ role: "user", content: userMessage }],
   });
