@@ -39,6 +39,23 @@ export type Carta1Input = {
   firma: { nombre: string; cargo: string };
   numeroCarta?: string;
   fechaCartaISO?: string;
+  /** Subtipo de Carta 1: "carta1" (preaviso despido) o "carta1-amonestacion" (sanción menor).
+   *  Por defecto carta1-amonestacion ya que es el flujo real más común en Poderosa. */
+  subtipo?: "carta1" | "carta1-amonestacion";
+  /** Información del informe origen (LOG-Mina, etc.) para el párrafo de toma de conocimiento. */
+  informeOrigen?: {
+    numero: string;          // p.ej. "Log-Mina N.° 03"
+    fechaISO: string;        // p.ej. "2026-05-03"
+    area: string;            // p.ej. "logística"
+  };
+  /** PETS o procedimiento específico que el trabajador habría incumplido. */
+  petsAplicable?: {
+    nombre: string;          // p.ej. "Despacho de Explosivos, Accesorios y Agentes de Voladura"
+    codigo: string;          // p.ej. "LOG_RLD_PE_013"
+    numerales?: string[];    // p.ej. ["4.1.6.3", "4.1.6.5"]
+  };
+  /** Inciso aplicable del Art. 76° del RIT (p.ej. "v" para información inexacta/falsa). */
+  art76Inciso?: string;
 };
 
 export type Carta1Output = {
@@ -242,7 +259,15 @@ export async function generateCarta1(
 ): Promise<{ output: Carta1Output; usage: ModelUsage }> {
   const client = buildClient();
   const system = await loadPrompt("system.md");
-  const plantilla = await loadPrompt("carta1.md");
+  // Si el subtipo viene declarado como carta1-amonestacion, intenta cargar su prompt;
+  // si no existe (o subtipo es "carta1"), usa carta1.md general.
+  const promptFile = input.subtipo === "carta1-amonestacion" ? "carta1-amonestacion.md" : "carta1.md";
+  let plantilla: string;
+  try {
+    plantilla = await loadPrompt(promptFile);
+  } catch {
+    plantilla = await loadPrompt("carta1.md");
+  }
 
   // El prefijo cacheable contiene la plantilla canónica, plantilla del cliente
   // y few-shot examples de Legal. Se reutiliza entre llamadas del MISMO tipo

@@ -298,8 +298,14 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       templateUsed = { id: rec.id, label: rec.label, type: rec.type };
     }
 
-    // Few-shot: tomar hasta 3 cartas marcadas como ejemplares del mismo tipo
-    const exemplaryList = await s.cartas.list({ exemplary: true, tipo: "carta1", limit: 3 });
+    // Few-shot: tomar hasta 3 cartas marcadas como ejemplares del MISMO subtipo
+    // (carta1 vs carta1-amonestacion) — si no hay del subtipo exacto, caer a "carta1" genérico.
+    const subtipo = (v.input as { subtipo?: CartaTipo }).subtipo || "carta1";
+    let exemplaryList = await s.cartas.list({ exemplary: true, tipo: subtipo as CartaTipo, limit: 3 });
+    if (exemplaryList.length === 0 && subtipo !== "carta1") {
+      // fallback al subtipo carta1 si no hay ejemplos específicos del subtipo
+      exemplaryList = await s.cartas.list({ exemplary: true, tipo: "carta1", limit: 3 });
+    }
     const exemplary = exemplaryList
       .filter((c) => c.validatedByLegal === true || (c.rating ?? 0) >= 1)
       .map((c) => ({
@@ -315,7 +321,7 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       trabajadorNombre: v.input.trabajador?.nombre || "",
       trabajadorDni: v.input.trabajador?.dni || "",
       unidad: v.input.trabajador?.unidad || "",
-      tipo: "carta1" as CartaTipo,
+      tipo: subtipo as CartaTipo,
       templateId: templateUsed?.id ?? null,
       templateLabel: templateUsed?.label ?? null,
       generatedBy: v.generatedBy ?? null,
