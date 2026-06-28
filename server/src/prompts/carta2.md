@@ -1,83 +1,63 @@
-# Plantilla Carta 2 — Decisión final (post-descargo)
+# Plantilla Carta 2 — DECISIÓN FINAL del procedimiento disciplinario (post-descargo)
 
-> Validada por Legal · v2.5 · 14 Mar 2026.
-> Esta es la plantilla canónica para la **decisión final** del procedimiento disciplinario.
-> Se emite **DESPUÉS** de haber recibido y evaluado el descargo del trabajador (o vencido el plazo sin descargo).
-
----
-
-## Estructura común a todas las variantes
-
-**Membrete**: Compañía Minera Poderosa S.A. · RUC 20137025354 · Gerencia de RR.HH. — {unidad}
-
-{fecha alineada a la derecha}
-Carta N° **{numeroCarta}** (típicamente termina en `/02` siguiendo a la Carta 1)
-
-**{tratamiento}**
-**{NOMBRE EN MAYÚSCULAS}**
-DNI {dni}
-{puestoUnidad}
-Presente.—
-
-**Asunto:** Decisión final — {tipoDecisionLegible}
-
-{encabezado}
-
-{introduccionReferenciaCarta1Descargo}
-
-**Decisión.** {decisionLiteral}
-
-**Motivación.** {motivacionDetallada}
-
-**Norma aplicada.** {normaAplicada}
-
-{parrafoAdicionalPorTipo}
-
-{despedida}
-
-___________________________
-**{firma.nombre}**
-{firma.cargo}
-{firma.empresa}
-
-**Copia:** {listaCopias}
+> Validada por Legal · v3 · formato real de Poderosa (ref.: "Decisión final - JULIAN SALIRROSAS").
+> Se emite **DESPUÉS** de recibir y evaluar el descargo del trabajador (o de vencido el plazo sin descargo).
+> A diferencia de la Carta 1 (imputación), aquí los hechos se **AFIRMAN/CONFIRMAN** — NO se usa el condicional ("habría").
 
 ---
 
-## Variantes (campo `tipo`)
+## Estructura oficial (en este orden)
 
-### 1. `carta2-amonestacion`
-- Conservativa, leve.
-- `decisionLiteral`: "Amonestación escrita por … con observación al expediente personal."
-- `parrafoAdicionalPorTipo`: explicar que la amonestación quedará registrada en el expediente y se considerará para reincidencia.
-- Firma: **Jefe/a de RR.HH. de la unidad** (no requiere Superintendente).
-- Sin párrafo de impugnación judicial (no es sanción extintiva).
+1. **Encabezado**: "Pataz, {fecha}" · "CARTA N°{NNN}- RRHH / {año}" · destinatario ("Señor:", NOMBRE EN MAYÚSCULAS, cargo).
+2. **REFERENCIA**: línea en mayúsculas, p.ej. "DECISIÓN FINAL A LAS INVESTIGACIONES SOBRE EL INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO".
+3. **De nuestra consideración:** (`encabezado`).
+4. **Recap** (`introduccion`): "Como es de vuestro pleno conocimiento, COMPAÑIA MINERA PODEROSA S.A. … tomó conocimiento con fecha … mediante {informe} … de una presunta irregularidad … Mediante carta de imputación de fecha {fecha carta 1} se le solicitó presentar sus descargos; {presentó sus descargos el {fecha} / pese al plazo otorgado, no presentó descargo alguno}."
+5. **HECHOS COMPROBADOS** (`hechosComprobados`): los hechos **afirmados** — "se identificó que usted…", "se verificó que…", "se constató…", "se acreditó…". Tiempo, lugar y modo. NADA en condicional.
+6. **ANÁLISIS DE LOS HECHOS EXPUESTOS** (`analisisDescargo`):
+   - Si **hay descargo**: resume los argumentos del trabajador y los evalúa **uno a uno**. Los que tengan mérito probatorio se **aceptan** (y pueden atenuar o llevar a archivo); los que no, se **refutan con fundamento** en la base normativa y las pruebas. Concluir si los hechos quedaron desvirtuados (total/parcial) o **acreditados**.
+   - Si **no hay descargo** y venció el plazo: "pese al plazo otorgado … no presentó descargo alguno; en consecuencia, los hechos atribuidos en la carta de imputación, al no haber sido desvirtuados, se consideran acreditados y válidamente verificados."
+7. **TIPIFICACIÓN DE LAS FALTAS LABORALES** (`tipificacion`): "Los hechos antes descritos constituirían una trasgresión al {RIT / RISST / Código de Ética}; en consecuencia, PODEROSA ha considerado que su conducta se encontraría tipificada en:" seguido de las **citas LITERALES** de los artículos/numerales (Art. 3°, 62°, 63° incisos, 76° inciso, etc.) — **tomadas de la Base normativa de Poderosa provista**. (La tipificación puede usar "se encontraría tipificada", como en el formato real.)
+8. **DECISIÓN FINAL** (`decisionFinal`): "En aplicación de los principios de razonabilidad y proporcionalidad, y habiéndose efectuado el análisis de los medios probatorios y antecedentes … la empresa ha decidido {sanción según el tipo}."
+9. **Exhortación** (`exhortacion`): exhortar a cumplir en adelante + advertir reincidencia; y "agradeceremos se sirva firmar la copia de la presente en señal de haber tomado conocimiento … incorporada a su legajo personal."
+10. **Atentamente,** (`despedida`) + firma.
 
-### 2. `carta2-suspension`
-- Conservativa, intermedia.
-- `decisionLiteral`: "Suspensión sin goce de haberes por **N días** (de **fecha inicio** a **fecha fin**), debiendo reincorporarse a sus labores el **fecha de retorno**."
-- `parrafoAdicionalPorTipo`: indicar exactamente fecha de inicio, fin y retorno; advertir que la reincidencia podrá motivar sanción mayor.
-- Firma: **Superintendente de la unidad**.
-- Mencionar art. del sancionario interno.
+---
 
-### 3. `carta2-despido`
-- Extintiva. **Mucho cuidado con la motivación y los plazos.**
-- `decisionLiteral`: "Despido por falta grave conforme al Art. 25 inciso {x} del TUO del D.L. N° 728."
-- `parrafoAdicionalPorTipo`: Citar Art. 31 D.L. 728 — la decisión es notificada por conducto notarial o con cargo recibido; indicar fecha de cese y derecho del trabajador a impugnar judicialmente en el plazo legal (30 días hábiles para la nulidad de despido, Art. 36 D.L. 728).
-- Firma: **Gerencia de RR.HH. o Superintendente** según el RIT.
-- **Verificar nulidades del Art. 29**: no debe haber embarazo / sindicalización / queja administrativa como motivo.
+## Variantes (`tipo`) — texto de `decisionFinal`
+- `carta2-amonestacion`: "imponerle una medida disciplinaria consistente en una AMONESTACIÓN ESCRITA, la cual quedará registrada en su legajo personal." Firma: Jefatura de RR.HH.
+- `carta2-suspension`: "imponerle una medida disciplinaria consistente en una SUSPENSIÓN DE {N en letras} ({N}) DÍA(S) SIN GOCE DE HABER" (indicar fechas si vienen). Firma: Superintendencia/Jefatura según unidad.
+- `carta2-despido`: "dar por concluido el vínculo laboral mediante DESPIDO por falta grave …" — citar el sustento de la base normativa; indicar derecho a impugnar en sede judicial en el plazo legal. Firma: Gerencia/Superintendencia.
+- `desistimiento` (archivo): "DESISTIRSE del procedimiento disciplinario y ARCHIVAR el caso, no correspondiendo aplicar sanción" (típico cuando el descargo desvirtúa los hechos). Sin agravio.
 
-### 4. `desistimiento`
-- La empresa decide NO sancionar.
-- `decisionLiteral`: "Desistimiento del procedimiento disciplinario iniciado el {fecha}; no se aplicará sanción."
-- `parrafoAdicionalPorTipo`: aclarar que no constituye antecedente y que el expediente se cierra.
-- Firma: **Jefe/a de RR.HH.**.
-- Sin párrafo de impugnación (no hay agravio para el trabajador).
+## Salida — devuelve ÚNICAMENTE este JSON (sin texto fuera)
+```json
+{
+  "asunto": "Decisión final — {tipo legible}",
+  "fecha": "Pataz, 20 de mayo de 2026",
+  "numeroCarta": "CARTA N°074.1- RRHH / 2026",
+  "destinatario": { "tratamiento": "Señor:", "nombre": "JULIAN SALIRROSAS JUAN", "dni": "70 234 567", "puestoUnidad": "Bodeguero — Unidad Santa María" },
+  "cuerpo": {
+    "referencia": "DECISIÓN FINAL A LAS INVESTIGACIONES SOBRE EL INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO",
+    "encabezado": "De nuestra consideración:",
+    "introduccion": "Como es de vuestro pleno conocimiento, …",
+    "hechosComprobados": "Con fecha … se identificó que usted … se verificó … se constató …",
+    "analisisDescargo": "Que, con fecha … se le hizo entrega de la carta de imputación … {evaluación/refutación del descargo o ausencia de descargo} … se consideran acreditados.",
+    "tipificacion": "Los hechos antes descritos constituirían una trasgresión … se encontraría tipificada en: Reglamento Interno de Trabajo: \"Artículo 62°.- …\" …",
+    "decisionFinal": "En aplicación de los principios de razonabilidad y proporcionalidad … la empresa ha decidido imponerle …",
+    "exhortacion": "Finalmente, le exhortamos a … Asimismo, agradeceremos se sirva firmar la copia de la presente …",
+    "despedida": "Atentamente,"
+  },
+  "firma": { "nombre": "Perci Alvarado Arteaga", "cargo": "Superintendencia de Recursos Humanos", "empresa": "Compañía Minera Poderosa S.A." },
+  "copia": ["Legajo personal", "RR.HH.", "Legal"],
+  "warnings": [],
+  "refused": false,
+  "refusedReason": null
+}
+```
 
-## Reglas de hidratación
-
-- `introduccionReferenciaCarta1Descargo` debe mencionar: (a) la Carta 1 (número + fecha de notificación), (b) la fecha de recepción del descargo (o el hecho de no haber presentado descargo dentro del plazo), (c) que se ha realizado evaluación motivada.
-- `motivacionDetallada` debe **abordar el descargo**: aceptado, rechazado, o parcialmente aceptado, **con razones**. Sin esto, la carta es vulnerable ante SUNAFIL.
-- `normaAplicada` debe incluir: artículo del D.L. 728 + artículo del RIT + número del sancionario interno cuando corresponda.
-- Para `despido`: verificar que la falta tipificada es la misma que la imputada en Carta 1. No se puede despedir por hechos distintos.
-- Si el `descargo` no se proporciona en el input, **warning** crítico: "No se evaluó descargo — verificar si venció el plazo y agregar referencia explícita al vencimiento."
+## Reglas
+- **Confirmación**: en `hechosComprobados` y el resto, los hechos se afirman; nunca "habría/presuntamente". (`tipificacion` puede usar "se encontraría tipificada".)
+- **Sustento exclusivo**: las citas de `tipificacion` provienen SOLO de la "Base normativa de Poderosa" inyectada (documento + artículo literal). Si falta sustento, `warnings[]`.
+- **Descargo justo**: evaluar de verdad — si un argumento desvirtúa el hecho, reconocerlo (puede cambiar la sanción o llevar a archivo). No refutar de forma automática.
+- **Proporcionalidad**: la sanción de `decisionFinal` debe ser proporcional a la gravedad y antecedentes.
+- Despido: verificar que la falta es la misma imputada en la Carta 1 y que no hay nulidad (embarazo/sindicalización/queja).

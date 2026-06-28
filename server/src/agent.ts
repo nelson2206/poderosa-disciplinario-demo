@@ -134,14 +134,17 @@ export type Carta2Output = {
   fecha: string;
   numeroCarta: string;
   destinatario: { tratamiento: string; nombre: string; dni: string; puestoUnidad: string };
+  /** Estructura oficial de la Decisión Final de Poderosa (post-descargo, en confirmación). */
   cuerpo: {
-    encabezado: string;
-    introduccion: string;
-    decision: string;
-    motivacion: string;
-    normaAplicada: string;
-    parrafoAdicional: string;
-    despedida: string;
+    referencia: string;        // "DECISIÓN FINAL A LAS INVESTIGACIONES SOBRE EL INCUMPLIMIENTO..."
+    encabezado: string;        // "De nuestra consideración:"
+    introduccion: string;      // recap: toma de conocimiento + carta de imputación (N°/fecha) + si presentó descargo
+    hechosComprobados: string; // hechos AFIRMADOS (se identificó/verificó/constató/acreditó) — NO condicional
+    analisisDescargo: string;  // evaluación del descargo: acepta lo que tenga mérito, refuta lo demás con fundamento; o "no presentó descargo → acreditado"
+    tipificacion: string;      // citas literales de los artículos del RIT / Código de Ética (de la base normativa)
+    decisionFinal: string;     // la sanción, con razonabilidad y proporcionalidad
+    exhortacion: string;       // exhortación final + pedido de firma de cargo
+    despedida: string;         // "Atentamente,"
   };
   firma: { nombre: string; cargo: string; empresa: string };
   copia: string[];
@@ -526,7 +529,7 @@ export async function generateCarta2(
   const plantilla = await loadPrompt("carta2.md");
 
   const cacheablePrefix = [
-    `Redacta el borrador de **Carta 2 — ${input.tipo}** (decisión final del procedimiento disciplinario) para el siguiente caso. Sigue estrictamente la plantilla, evalúa explícitamente el descargo en la motivación, y devuelve únicamente el JSON especificado.`,
+    `Redacta el borrador de la **DECISIÓN FINAL — ${input.tipo}** del procedimiento disciplinario para el siguiente caso, en el formato oficial de Poderosa de la plantilla. Reglas clave: (1) los hechos se **AFIRMAN/CONFIRMAN** (post-descargo) — NO uses condicional "habría"; (2) en \`analisisDescargo\` evalúa de verdad el descargo del trabajador: acepta lo que tenga mérito (puede atenuar la sanción o llevar a archivo) y **refuta** lo demás con fundamento en la base normativa; si no hay descargo y venció el plazo, indícalo y considera los hechos acreditados; (3) en \`tipificacion\` cita LITERALMENTE los artículos de la base normativa provista. Devuelve únicamente el JSON especificado en la plantilla (con las claves de \`cuerpo\`: referencia, encabezado, introduccion, hechosComprobados, analisisDescargo, tipificacion, decisionFinal, exhortacion, despedida).`,
     "",
     "## Plantilla canónica (referencia mínima de Legal)",
     plantilla,
