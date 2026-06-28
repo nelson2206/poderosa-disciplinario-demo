@@ -1537,7 +1537,14 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <h3>Decisión final</h3>
             <div class="desc">La carta se actualiza en vivo según los datos elegidos.</div>
 
-            <div class="field readonly"><label>Caso</label><input value="CD-2026-047 · Juan Pérez Rojas" readonly></div>
+            <div class="field readonly"><label>Caso</label><input id="c2-caso-label" value="CD-2026-047 · Juan Pérez Rojas" readonly></div>
+            <div class="field"><label for="c2-cargar-caso">Cargar caso (N° de la imputación)</label>
+              <div style="display:flex;gap:8px;">
+                <input id="c2-cargar-caso" type="text" placeholder="p.ej. NC-1234567" style="flex:1;">
+                <button class="btn" id="c2-cargar-btn" type="button" style="font-size:12px;white-space:nowrap;">Cargar</button>
+              </div>
+              <div id="c2-cargar-status" style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Trae el trabajador y la sanción recomendada guardados al generar la imputación.</div>
+            </div>
 
             <div class="field"><label for="c2-tipo">Tipo de decisión</label>
               <select id="c2-tipo" data-bind="c2-tipo">
@@ -2742,6 +2749,36 @@ const C2_TIPO_LEGIBLE = {
   "desistimiento": "Archivo del procedimiento (sin sanción)"
 };
 
+// ===== Decisión final: estado del caso (cargado desde la imputación o un caso) =====
+let c2State = null; // null = modo demo
+const CAT_TO_C2LABEL = {
+  amonestacion: "Amonestación escrita",
+  suspension: "Suspensión sin goce de haber",
+  despido: "Despido",
+  archivo: "Archivo del procedimiento (sin sanción)"
+};
+function c2UpdateCaseHeader() {
+  const el = document.getElementById("c2-caso-label");
+  if (el && c2State && c2State.caso) { const t = c2State.trabajador || {}; el.value = `${c2State.caso} · ${t.nombre || "—"}`; }
+}
+function applyC2Recomendacion(rec) {
+  if (!rec || !rec.categoria) return;
+  const label = CAT_TO_C2LABEL[rec.categoria];
+  const sel = document.getElementById("c2-tipo");
+  if (sel && label) { sel.value = label; sel.dispatchEvent(new Event("change")); }
+  if (rec.categoria === "suspension" && rec.diasSuspension) { const d = document.getElementById("c2-dias"); if (d) d.value = rec.diasSuspension; }
+}
+function c2CargarCaso(snap) {
+  if (!snap) return false;
+  c2State = { caso: snap.caso, trabajador: snap.trabajador, carta1: snap.carta1, hechosImputados: snap.hechosImputados, descargoRecibidoISO: snap.descargoRecibidoISO, sancionRecomendada: snap.sancionRecomendada || null };
+  c2UpdateCaseHeader();
+  if (c2State.sancionRecomendada) applyC2Recomendacion(c2State.sancionRecomendada);
+  return true;
+}
+// Persistencia por caso (localStorage del analista de RR.HH.)
+function c2GuardarSnapshot(snap) { if (snap && snap.caso) { try { localStorage.setItem("pod_caso_" + snap.caso, JSON.stringify(snap)); } catch (e) {} } }
+function c2LeerSnapshot(caso) { try { const s = localStorage.getItem("pod_caso_" + caso); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+
 function setC2Status(msg, kind) {
   const el = document.getElementById("c2-ai-status");
   if (!el) return;
@@ -2796,19 +2833,28 @@ function gatherCarta2Input() {
   const templateId = (document.getElementById("c2-template") || {}).value || "";
   const today = new Date().toISOString().slice(0, 10);
 
+  // Datos del caso: del c2State (cargado desde la imputación / un caso) o demo por defecto.
+  const cs = (typeof c2State !== "undefined" && c2State) ? c2State : null;
+  const t = (cs && cs.trabajador) || {};
+  const unidad = t.unidad || "Marañón";
   const input = {
-    caseId: "CD-2026-047",
-    trabajador: {
+    caseId: (cs && cs.caso) || "CD-2026-047",
+    trabajador: cs && cs.trabajador ? {
+      nombre: t.nombre || "—",
+      dni: t.dni || "—",
+      puestoUnidad: t.puestoUnidad || `${t.puesto || "—"} — Unidad ${unidad}`,
+      unidad: unidad
+    } : {
       nombre: "Juan Pérez Rojas",
       dni: "70 234 567",
       puestoUnidad: "Operador de flotación — Unidad Marañón",
       unidad: "Marañón"
     },
     tipo: tipo,
-    carta1: { numero: "RH-CD-2026-047/01", fechaISO: "2026-04-29" },
-    descargoRecibidoISO: "2026-05-02",
+    carta1: (cs && cs.carta1) || { numero: "RH-CD-2026-047/01", fechaISO: "2026-04-29" },
+    descargoRecibidoISO: (cs && cs.descargoRecibidoISO) || "2026-05-02",
     descargoContenido: descargo,
-    hechosImputados: "Ingreso al área operativa de flotación sin respirador, el 28/04/2026 a las 14:30, observado por el supervisor de turno.",
+    hechosImputados: (cs && cs.hechosImputados) || "Ingreso al área operativa de flotación sin respirador, el 28/04/2026 a las 14:30, observado por el supervisor de turno.",
     evaluacion: evaluacion,
     normaAplicada: norma,
     firma: tipo === "carta2-amonestacion" || tipo === "desistimiento"
@@ -2886,6 +2932,22 @@ if (c2TipoSelect && c2TemplateSelect) {
 const c2DiasWrap = document.getElementById("c2-dias-wrap");
 function c2ToggleDias(){ if (c2DiasWrap && c2TipoSelect) c2DiasWrap.style.display = (C2_TIPO_TO_KEY[c2TipoSelect.value] === "carta2-suspension") ? "block" : "none"; }
 if (c2TipoSelect) { c2TipoSelect.addEventListener("change", c2ToggleDias); c2ToggleDias(); }
+
+// Cargar un caso guardado (desde la imputación) en el generador de Decisión final
+document.getElementById("c2-cargar-btn")?.addEventListener("click", () => {
+  const st = document.getElementById("c2-cargar-status");
+  const caso = (document.getElementById("c2-cargar-caso")?.value || "").trim();
+  if (!caso) { if (st) { st.textContent = "Ingresa el N° del caso."; st.style.color = "var(--terracotta)"; } return; }
+  const snap = c2LeerSnapshot(caso);
+  if (!snap) { if (st) { st.textContent = `No encontré el caso "${caso}" guardado en este navegador. (Se guarda al generar la imputación con análisis del informe.)`; st.style.color = "var(--terracotta)"; } return; }
+  c2CargarCaso(snap);
+  c2ToggleDias();
+  if (st) {
+    const r = snap.sancionRecomendada;
+    st.style.color = "var(--green)";
+    st.textContent = `✓ Caso cargado: ${(snap.trabajador||{}).nombre || "—"}${r&&r.categoria?` · sanción pre-seleccionada: ${CAT_TO_C2LABEL[r.categoria]||r.categoria}${r.categoria==="suspension"&&r.diasSuspension?` (${r.diasSuspension} d)`:""}`:""}. Revisa/cambia y redacta.`;
+  }
+});
 
 // ====== Biblioteca de plantillas ======
 const TEMPLATE_TYPE_LABELS = {
@@ -3967,6 +4029,24 @@ async function ncGenerar() {
     ncState.cartaOutput = data.carta;
     ncState.persistedId = data.persisted?.id || null;
 
+    // Guardar snapshot del caso (trabajador + sanción recomendada) para reusarlo
+    // luego en la Carta de decisión final (Path 2: cargar por N° de caso).
+    try {
+      const an = ncState.analisis;
+      const sp = an && an.sancionPropuesta;
+      const recEval = sp && sp.evaluacion && sp.evaluacion.sancionRecomendada;
+      const rec = (recEval && recEval.categoria) ? recEval : (sp && sp.categoria ? { categoria: sp.categoria, diasSuspension: sp.diasSuspension } : null);
+      const tr = ncState.trabajador || {};
+      const unidad = tr.unidad || "Marañón";
+      if (typeof c2GuardarSnapshot === "function") c2GuardarSnapshot({
+        caso: caseId,
+        trabajador: { nombre: tr.nombre||"—", dni: tr.dni||"—", puesto: tr.puesto||"—", unidad, puestoUnidad: `${tr.puesto||"—"} — Unidad ${unidad}` },
+        carta1: { numero: ncState.cartaOutput?.numeroCarta || (inf.numeroCarta||""), fechaISO: (inf.fechaEmisionISO || new Date().toISOString().slice(0,10)) },
+        hechosImputados: (an && an.incidente && an.incidente.conducta) || inf.conducta || "",
+        sancionRecomendada: rec
+      });
+    } catch (e) {}
+
     // Guardar evidencias en la carta persistida (se hace en un PATCH separado)
     if (ncState.evidencias && ncState.evidencias.length > 0 && ncState.persistedId) {
       await podFetch(`${AI_API_BASE}/api/cartas/${ncState.persistedId}/feedback`, {
@@ -4531,6 +4611,7 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
            ${sp.textoOriginal?`<div style="font-size:11.5px;color:var(--gray-text);margin-top:3px;font-style:italic;">«${escapeHtml(sp.textoOriginal)}»</div>`:""}
            ${evHtml}
            <div style="font-size:11px;color:var(--gray-muted);margin-top:4px;">Es una recomendación: <strong>tú decides la sanción final</strong> en la Carta de decisión final (puedes elegir otra).</div>
+           <button id="nc-continuar-decision" type="button" class="btn primary" style="margin-top:8px;font-size:12px;background:var(--teal);">⚖ Preparar Carta de decisión final con esta sanción →</button>
          </div>`
       : (sp ? `<div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">No se detectó una propuesta de sanción explícita del jefe en el texto.</div>` : "");
     box.style.display="block";
@@ -4547,6 +4628,28 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
           <div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">Los campos de los pasos 1 y 2 se rellenaron con lo extraído. Ajusta lo que haga falta y pulsa <strong>Generar carta con IA</strong> — la carta citará exactamente estas normas.</div>
         </div>
       </div>`;
+    // Botón "Preparar Carta de decisión final con esta sanción" (Path 1)
+    $("nc-continuar-decision")?.addEventListener("click", ()=>{
+      if (typeof ncGatherTrabajador === "function") ncGatherTrabajador();
+      const t = ncState.trabajador || {};
+      const caso = ncState.caseId || ("NC-" + Date.now().toString().slice(-7));
+      ncState.caseId = caso;
+      const sp = a.sancionPropuesta || {};
+      const recEval = sp.evaluacion && sp.evaluacion.sancionRecomendada;
+      const rec = (recEval && recEval.categoria) ? recEval
+                : (sp.categoria ? { categoria: sp.categoria, diasSuspension: sp.diasSuspension } : null);
+      const unidad = t.unidad || "Marañón";
+      const snap = {
+        caso,
+        trabajador: { nombre: t.nombre||"—", dni: t.dni||"—", puesto: t.puesto||"—", unidad, puestoUnidad: `${t.puesto||"—"} — Unidad ${unidad}` },
+        hechosImputados: (a.incidente && a.incidente.conducta) || "",
+        sancionRecomendada: rec
+      };
+      if (typeof c2GuardarSnapshot==="function") c2GuardarSnapshot(snap);
+      if (typeof c2CargarCaso==="function") c2CargarCaso(snap);
+      if (typeof goView==="function") goView("carta2");
+      if (typeof c2ToggleDias==="function") c2ToggleDias();
+    });
   }
 
   async function analizar(){
