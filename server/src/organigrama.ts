@@ -105,10 +105,11 @@ async function load(): Promise<EmpleadoOrg[]> {
     loadSource = "local";
     return cache;
   }
-  cache = [];
+  // No cachear el estado vacío: así, si el directorio se siembra después (o el
+  // proyecto Supabase estaba pausado), la próxima consulta lo recarga sin reiniciar.
   loadSource = "vacío";
-  console.warn("[organigrama] directorio vacío — corre scripts/organigrama-to-json.py + seed-organigrama.mjs");
-  return cache;
+  console.warn("[organigrama] directorio vacío — aún no sembrado; se reintentará en la próxima consulta");
+  return [];
 }
 
 function toMatch(e: EmpleadoOrg): JefeMatch {

@@ -57,14 +57,14 @@ async function fromLocalFile(): Promise<NormativaIndex | null> {
 async function load(): Promise<NormativaIndex> {
   if (cache) return cache;
   const sb = await fromSupabase();
-  if (sb?.chunks?.length) { cache = sb; loadSource = "supabase"; }
-  else {
-    const local = await fromLocalFile();
-    if (local?.chunks?.length) { cache = local; loadSource = "local"; }
-    else { cache = { chunks: [] }; loadSource = "vacío"; console.warn("[normativa] índice vacío — corre scripts/build-normativa-index.mjs"); }
-  }
-  norms = cache.chunks.map((c) => Math.hypot(...c.embedding));
-  return cache;
+  if (sb?.chunks?.length) { cache = sb; loadSource = "supabase"; norms = cache.chunks.map((c) => Math.hypot(...c.embedding)); return cache; }
+  const local = await fromLocalFile();
+  if (local?.chunks?.length) { cache = local; loadSource = "local"; norms = cache.chunks.map((c) => Math.hypot(...c.embedding)); return cache; }
+  // No cachear el estado vacío: si el índice se construye después (o el proyecto
+  // Supabase estaba pausado), la próxima consulta lo recarga sin reiniciar.
+  loadSource = "vacío";
+  console.warn("[normativa] índice vacío — aún no construido; se reintentará en la próxima consulta");
+  return { chunks: [] };
 }
 
 async function embedQuery(text: string, model: string): Promise<number[] | null> {
