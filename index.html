@@ -10,6 +10,7 @@
 <meta name="poderosa-token-inline" content="__POD_API_TOKEN__">
 <!-- Biblioteca para exportar el preview de carta a PDF (cliente-side, sin servidor adicional) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+<script src="assets/poderosa-brand.js"></script>
 <title>Sistema de Gestión Disciplinaria — Compañía Minera Poderosa</title>
 <meta name="description" content="Aplicativo interno de Compañía Minera Poderosa para la gestión de medidas disciplinarias conforme al TUO D.L. 728. Trazabilidad lista para SUNAFIL.">
 
@@ -1570,8 +1571,13 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="field"><label for="c2-norma">Norma aplicada</label>
               <input id="c2-norma" data-bind="c2-norma" value="Art. 25 inc. a) D.L. 728 · Art. 8.4.b RIT · Sancionario interno R-2026.01">
             </div>
-            <div class="field"><label for="c2-descargo">Descargo del trabajador (resumen)</label>
-              <textarea id="c2-descargo" rows="3" placeholder="Pega o resume aquí el descargo. La IA debe abordarlo explícitamente en la motivación.">El trabajador reconoce el incidente pero alega que el área de mantenimiento no había repuesto los respiradores en el dispensario esa mañana. Adjunta foto del dispensario vacío y reporte interno #4521.</textarea>
+            <div class="field"><label for="c2-descargo">Descargo del trabajador (adjunta el archivo o pega el correo)</label>
+              <textarea id="c2-descargo" rows="4" placeholder="Pega aquí el descargo del trabajador (o el correo), o súbelo abajo. La IA lo evaluará y refutará los argumentos que no procedan en la sección de ANÁLISIS.">El trabajador reconoce el incidente pero alega que el área de mantenimiento no había repuesto los respiradores en el dispensario esa mañana. Adjunta foto del dispensario vacío y reporte interno #4521.</textarea>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                <label for="c2-descargo-file" class="btn" style="font-size:11.5px;cursor:pointer;">📎 Subir descargo (PDF · Word · TXT · EML)</label>
+                <input type="file" id="c2-descargo-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml" style="display:none;">
+                <span id="c2-descargo-status" style="font-size:11px;color:var(--gray-muted);"></span>
+              </div>
             </div>
             <div class="field"><label for="c2-template">Plantilla base (opcional)</label>
               <select id="c2-template" data-template-filter="carta2-amonestacion,carta2-suspension,carta2-despido,desistimiento">
@@ -1587,7 +1593,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div id="c2-ai-warnings" style="display:none;margin-top:10px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
 
             <div style="display:flex;gap:8px;margin-top:10px;">
-              <button class="btn" onclick="window.print()" style="flex:1;">Imprimir</button>
+              <button class="btn" id="c2-export-pdf" style="flex:1;background:var(--terracotta);color:#fff;border:none;">📄 PDF</button>
+              <button class="btn" id="c2-export-docx" style="flex:1;background:#2A5BA0;color:#fff;border:none;">📝 Word</button>
               <button class="btn primary" data-action="goto" data-view="aprobacion" style="flex:1;">Enviar a aprobación →</button>
             </div>
             <div style="margin-top:10px;font-size:11px;color:var(--gray-muted);display:flex;gap:6px;align-items:center;">
@@ -1596,24 +1603,26 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             </div>
           </div>
 
-          <div class="preview-paper">
-            <div class="letterhead">
-              <img src="data:image/png;base64,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" alt="Logo Poderosa">
-              <div class="lh-meta"><div>Compañía Minera Poderosa S.A.</div><div>RUC 20137025354</div><div>Gerencia de RR.HH. — Marañón</div></div>
-            </div>
-            <p id="pp2-fecha" style="text-align:right;font-size:12.5px;">Trujillo, 6 de mayo de 2026</p>
-            <p style="text-align:right;font-size:12.5px;">Carta N° <strong id="pp2-numero">RH-CD-2026-047/02</strong></p>
-            <p id="pp2-destinatario" style="margin-top:18px;"><strong>Señor</strong><br><strong>JUAN PÉREZ ROJAS</strong><br>DNI 70 234 567<br>Operador de flotación — Unidad Marañón<br>Presente.—</p>
-            <p class="ref" id="pp2-asunto">Asunto: Decisión final — <span data-bind-out="c2-tipo">Amonestación escrita</span></p>
-            <p id="pp2-encabezado">De nuestra consideración:</p>
-            <p id="pp2-intro">Habiéndose iniciado el procedimiento disciplinario mediante Carta de Imputación N° RH-CD-2026-047/01 del 29 de abril de 2026, recibido su descargo el 2 de mayo de 2026, y luego de la evaluación motivada de los hechos, descargos y pruebas, le comunicamos lo siguiente:</p>
-            <p><strong>Decisión.</strong> <span id="pp2-decision"><mark data-bind-out="c2-detalle">Amonestación escrita por incumplimiento de protocolo de seguridad EPP, con observación al expediente personal.</mark></span></p>
-            <p><strong>Motivación.</strong> <span id="pp2-motivacion" data-bind-out="c2-motiva">Habiendo evaluado el descargo del trabajador y la evidencia recabada, se constata que la falta es atribuible parcialmente a una falla de reposición del área de mantenimiento (reporte #4521). No obstante, el trabajador no comunicó de inmediato a su supervisor antes de ingresar al área operativa, lo cual configura una falta menor del protocolo de seguridad. Considerando antigüedad, ausencia de antecedentes y conducta atenuante, se aplica amonestación escrita conforme al sancionario interno.</span></p>
-            <p><strong>Norma aplicada.</strong> <span id="pp2-norma"><mark data-bind-out="c2-norma">Art. 25 inc. a) D.L. 728 · Art. 8.4.b RIT · Sancionario interno R-2026.01</mark></span>.</p>
-            <p id="pp2-parrafo-adicional">Conforme al Art. 31 del TUO del D.L. N° 728, esta decisión podrá ser impugnada en sede judicial dentro del plazo legal correspondiente.</p>
-            <p id="pp2-despedida">Atentamente,</p>
-            <div class="signature"><div class="line"></div><strong id="pp2-firma-nombre">Carlos Ramírez Ortega</strong><br><span id="pp2-firma-cargo" style="color:#666;">Superintendente — Unidad Marañón</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
-            <div class="annex"><strong>Copia:</strong> <span id="pp2-copia">Expediente del trabajador · RR.HH. · Legal · Archivo SUNAFIL</span>.</div>
+          <div class="preview-paper" id="pp2-paper">
+            <div id="pp2-logo" style="margin-bottom:14px;"></div>
+            <p id="pp2-fecha" style="text-align:right;font-size:12.5px;">Pataz, [fecha]</p>
+            <p style="text-align:right;font-size:12.5px;"><strong id="pp2-numero">CARTA N°…- RRHH / 2026</strong></p>
+            <p id="pp2-destinatario" style="margin-top:16px;"><strong>Señor:</strong><br><strong>—</strong><br>—<br>Presente.—</p>
+            <p id="pp2-referencia" style="margin-top:12px;font-weight:700;text-transform:uppercase;">REFERENCIA: DECISIÓN FINAL A LAS INVESTIGACIONES SOBRE EL INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO</p>
+            <p id="pp2-encabezado" style="margin-top:12px;">De nuestra consideración:</p>
+            <div id="pp2-intro" style="margin-top:6px;"></div>
+            <p style="margin-top:14px;font-weight:700;">HECHOS COMPROBADOS:</p>
+            <div id="pp2-hechos"></div>
+            <p style="margin-top:14px;font-weight:700;">ANÁLISIS DE LOS HECHOS EXPUESTOS:</p>
+            <div id="pp2-analisis"></div>
+            <p style="margin-top:14px;font-weight:700;">TIPIFICACIÓN DE LAS FALTAS LABORALES:</p>
+            <div id="pp2-tipificacion"></div>
+            <p style="margin-top:14px;font-weight:700;">DECISIÓN FINAL</p>
+            <div id="pp2-decision"></div>
+            <div id="pp2-exhortacion" style="margin-top:12px;"></div>
+            <p id="pp2-despedida" style="margin-top:16px;">Atentamente,</p>
+            <div class="signature"><div class="line"></div><strong id="pp2-firma-nombre">—</strong><br><span id="pp2-firma-cargo" style="color:#666;">—</span><br><span style="color:#666;">Compañía Minera Poderosa S.A.</span></div>
+            <div id="pp2-pie"></div>
           </div>
         </div>
       </section>
@@ -2796,31 +2805,37 @@ function showC2Warnings(warnings) {
     + "</ul>";
 }
 
+// Logo + pie oficiales en el preview de Decisión final (al cargar y al hidratar).
+function c2SetBranding() {
+  const logo = document.getElementById("pp2-logo");
+  if (logo && typeof podLetterheadHTML === "function") logo.innerHTML = podLetterheadHTML();
+  const pie = document.getElementById("pp2-pie");
+  if (pie && typeof podFooterHTML === "function") pie.innerHTML = podFooterHTML();
+}
 function hydrateCarta2Preview(carta, tipoLabel) {
   const setText = (id, val) => { const n = document.getElementById(id); if (n && val != null) n.textContent = val; };
   const setHTML = (id, html) => { const n = document.getElementById(id); if (n && html != null) n.innerHTML = html; };
-  setText("pp2-fecha", "Trujillo, " + (carta.fecha || ""));
+  const ptag = (t) => !t ? "" : String(t).split(/\n{2,}/).map(p => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`).join("");
+  c2SetBranding();
+  setText("pp2-fecha", carta.fecha || "");
   setText("pp2-numero", carta.numeroCarta || "");
   if (carta.destinatario) {
     const d = carta.destinatario;
-    setHTML("pp2-destinatario", `<strong>${d.tratamiento || ""}</strong><br><strong>${(d.nombre || "").toUpperCase()}</strong><br>DNI ${d.dni || ""}<br>${d.puestoUnidad || ""}<br>Presente.—`);
+    setHTML("pp2-destinatario", `<strong>${escapeHtml(d.tratamiento || "Señor:")}</strong><br><strong>${escapeHtml((d.nombre || "").toUpperCase())}</strong><br>${escapeHtml(d.puestoUnidad || "")}<br>Presente.—`);
   }
-  setHTML("pp2-asunto", "Asunto: Decisión final — " + escapeHtml(tipoLabel || ""));
-  if (carta.cuerpo) {
-    setText("pp2-encabezado", carta.cuerpo.encabezado);
-    setText("pp2-intro", carta.cuerpo.introduccion);
-    setHTML("pp2-decision", `<mark>${escapeHtml(carta.cuerpo.decision || "")}</mark>`);
-    setText("pp2-motivacion", carta.cuerpo.motivacion);
-    setHTML("pp2-norma", `<mark>${escapeHtml(carta.cuerpo.normaAplicada || "")}</mark>`);
-    setText("pp2-parrafo-adicional", carta.cuerpo.parrafoAdicional || "");
-    setText("pp2-despedida", carta.cuerpo.despedida || "Atentamente,");
-  }
+  const c = carta.cuerpo || {};
+  if (c.referencia) setText("pp2-referencia", "REFERENCIA: " + c.referencia);
+  setText("pp2-encabezado", c.encabezado || "De nuestra consideración:");
+  setHTML("pp2-intro", ptag(c.introduccion));
+  setHTML("pp2-hechos", ptag(c.hechosComprobados));
+  setHTML("pp2-analisis", ptag(c.analisisDescargo));
+  setHTML("pp2-tipificacion", ptag(c.tipificacion));
+  setHTML("pp2-decision", ptag(c.decisionFinal));
+  setHTML("pp2-exhortacion", ptag(c.exhortacion));
+  setText("pp2-despedida", c.despedida || "Atentamente,");
   if (carta.firma) {
     setText("pp2-firma-nombre", carta.firma.nombre);
     setText("pp2-firma-cargo", carta.firma.cargo);
-  }
-  if (Array.isArray(carta.copia)) {
-    setText("pp2-copia", carta.copia.join(" · "));
   }
 }
 
@@ -2949,6 +2964,41 @@ document.getElementById("c2-cargar-btn")?.addEventListener("click", () => {
   }
 });
 
+// Logo + pie oficiales en el preview de Decisión final al cargar la página
+if (typeof c2SetBranding === "function") c2SetBranding();
+
+// Subir el descargo (archivo) → /api/extraer-texto → rellena el textarea c2-descargo
+document.getElementById("c2-descargo-file")?.addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const st = document.getElementById("c2-descargo-status");
+  if (st) { st.style.color = "var(--gray-muted)"; st.textContent = `Extrayendo ${f.name}…`; }
+  try {
+    const fd = new FormData(); fd.append("archivo", f);
+    const res = await podFetch(`${AI_API_BASE}/api/extraer-texto`, { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    document.getElementById("c2-descargo").value = data.texto || "";
+    if (st) { st.style.color = "var(--green)"; st.textContent = `✓ ${data.chars.toLocaleString()} caracteres del descargo cargados. La IA los evaluará.`; }
+  } catch (err) { if (st) { st.style.color = "var(--terracotta)"; st.textContent = "Error: " + err.message; } }
+});
+
+// Export PDF / Word del preview oficial de Decisión final (#pp2-paper)
+function c2ExportName(ext){ return `Decision-final-${String((c2State&&c2State.caso)||"borrador").replace(/[\/\\?\s]+/g,"-")}.${ext}`; }
+document.getElementById("c2-export-pdf")?.addEventListener("click", () => {
+  const node = document.getElementById("pp2-paper");
+  if (!node || typeof html2pdf === "undefined") { alert("Genera la carta primero (o espera a que cargue html2pdf)."); return; }
+  html2pdf().set({ margin:[12,12,12,12], filename:c2ExportName("pdf"), image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} }).from(node).save();
+});
+document.getElementById("c2-export-docx")?.addEventListener("click", () => {
+  const node = document.getElementById("pp2-paper");
+  if (!node) return;
+  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Decisión final</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}</style></head><body>${node.innerHTML}</body></html>`;
+  const blob = new Blob(["﻿"+html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob); const a = document.createElement("a");
+  a.href = url; a.download = c2ExportName("doc"); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+});
+
 // ====== Biblioteca de plantillas ======
 const TEMPLATE_TYPE_LABELS = {
   "carta1": "Carta 1 — Imputación",
@@ -3004,6 +3054,18 @@ function renderTemplatesTable() {
 
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Membrete (logo) y pie de página oficiales de Poderosa — base64 desde assets/poderosa-brand.js.
+function podLetterheadHTML() {
+  return window.POD_LOGO_B64
+    ? `<div style="margin-bottom:16px;"><img src="${window.POD_LOGO_B64}" alt="PODEROSA" style="height:40px;display:block;"></div>`
+    : `<div style="font-family:var(--font-head);color:var(--gold);font-size:22px;margin-bottom:14px;">PODEROSA</div>`;
+}
+function podFooterHTML() {
+  return window.POD_PIE_B64
+    ? `<div style="margin-top:28px;"><img src="${window.POD_PIE_B64}" alt="" style="width:330px;max-width:100%;display:block;"></div>`
+    : "";
 }
 
 function populateTemplateSelectors() {
@@ -4209,16 +4271,7 @@ function ncRenderPreview() {
   `;
 
   root.innerHTML = `
-    <div class="letterhead" style="border-bottom:1px solid var(--gold);padding-bottom:10px;margin-bottom:18px;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div style="font-family:var(--font-head);color:var(--gold);font-size:20px;">PODEROSA</div>
-        <div style="font-size:10.5px;color:var(--gray-muted);">
-          Compañía Minera Poderosa S.A.<br>
-          RUC 20137025354<br>
-          Gerencia de RR.HH. — ${escapeHtml(ncState.trabajador.unidad || "—")}
-        </div>
-      </div>
-    </div>
+    ${podLetterheadHTML()}
     <p style="text-align:right;font-size:12.5px;">${escapeHtml(fechaCompleta || "Pataz, [fecha]")}</p>
     <p style="font-size:12.5px;"><strong>${escapeHtml(c.numeroCarta || "")}</strong></p>
     <p style="margin-top:18px;">${escapeHtml(d.tratamiento || "Señor,")}</p>
@@ -4239,6 +4292,7 @@ function ncRenderPreview() {
         ${anexosArr.map(a => `<p style="margin-left:12px;">${escapeHtml(a)}</p>`).join("")}
       </div>
     ` : ""}
+    ${podFooterHTML()}
   `;
 }
 
