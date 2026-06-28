@@ -4508,12 +4508,29 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     const tipoTxt = a.tipoSugerido==="decision-final" ? "Carta de decisión final" : "Imputación de falta";
     const sp = a.sancionPropuesta;
     const catLabel = { amonestacion:"Amonestación escrita", suspension:"Suspensión sin goce", despido:"Despido", archivo:"Archivo del procedimiento (sin sanción)" };
+    const labelSancion = (cat,dias)=> cat ? `${escapeHtml(catLabel[cat]||cat)}${cat==="suspension"&&dias?` · ${escapeHtml(String(dias))} día(s)`:""}` : "—";
+    const ev = sp && sp.evaluacion;
+    const vMap = {
+      "adecuada":{ic:"✅",col:"var(--green)",txt:"Adecuada — procede"},
+      "excesiva":{ic:"⚠",col:"var(--terracotta)",txt:"Excesiva (desproporcionada)"},
+      "insuficiente":{ic:"⚠",col:"var(--orange)",txt:"Insuficiente (muy leve)"},
+      "requiere-ajuste":{ic:"✎",col:"var(--orange)",txt:"Requiere ajuste"},
+      "prematura":{ic:"⏳",col:"var(--orange)",txt:"Prematura — aún no procede"}
+    };
+    const evV = ev && ev.veredicto ? (vMap[ev.veredicto]||{ic:"•",col:"var(--gray-text)",txt:ev.veredicto}) : null;
+    const recom = ev && ev.sancionRecomendada && ev.sancionRecomendada.categoria ? labelSancion(ev.sancionRecomendada.categoria, ev.sancionRecomendada.diasSuspension) : null;
+    const evHtml = evV ? `<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #e6cf9a;">
+             <strong style="color:${evV.col};">${evV.ic} Evaluación: ${evV.txt}</strong>
+             ${ev.comentario?`<div style="font-size:11.5px;color:var(--gray-text);margin-top:2px;">${escapeHtml(ev.comentario)}</div>`:""}
+             ${recom && ev.veredicto!=="adecuada"?`<div style="font-size:11.5px;color:var(--teal);margin-top:2px;">Recomendación: <strong>${escapeHtml(recom)}</strong></div>`:""}
+           </div>` : "";
     const spHtml = (sp && sp.detectada && sp.categoria)
       ? `<div style="margin-top:10px;padding:10px 12px;background:#FBF3E0;border:1px solid var(--gold);border-radius:7px;">
-           <strong style="color:var(--teal);">⚖ Sanción propuesta por el jefe:</strong> ${escapeHtml(catLabel[sp.categoria]||sp.categoria)}${sp.categoria==="suspension"&&sp.diasSuspension?` · <strong>${escapeHtml(String(sp.diasSuspension))} día(s)</strong>`:""}${sp.confianza?` <span style="color:var(--gray-muted);font-size:11px;">(confianza: ${escapeHtml(sp.confianza)})</span>`:""}
+           <strong style="color:var(--teal);">⚖ Sanción propuesta por el jefe:</strong> ${labelSancion(sp.categoria, sp.diasSuspension)}${sp.confianza?` <span style="color:var(--gray-muted);font-size:11px;">(confianza: ${escapeHtml(sp.confianza)})</span>`:""}
            ${sp.propuestaPor?`<div style="font-size:11.5px;color:var(--gray-muted);margin-top:2px;">Propuesta por: ${escapeHtml(sp.propuestaPor)}</div>`:""}
            ${sp.textoOriginal?`<div style="font-size:11.5px;color:var(--gray-text);margin-top:3px;font-style:italic;">«${escapeHtml(sp.textoOriginal)}»</div>`:""}
-           <div style="font-size:11px;color:var(--gray-muted);margin-top:4px;">Úsala en la <strong>Carta de decisión final</strong> (tras evaluar el descargo).</div>
+           ${evHtml}
+           <div style="font-size:11px;color:var(--gray-muted);margin-top:4px;">Es una recomendación: <strong>tú decides la sanción final</strong> en la Carta de decisión final (puedes elegir otra).</div>
          </div>`
       : (sp ? `<div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">No se detectó una propuesta de sanción explícita del jefe en el texto.</div>` : "");
     box.style.display="block";
