@@ -23,6 +23,7 @@ import {
   type TemplateType,
 } from "./storage/index.js";
 import { buscarOrganigrama, organigramaInfo } from "./organigrama.js";
+import { buscarNormativa, normativaInfo } from "./normativa.js";
 import nodemailer from "nodemailer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -123,11 +124,9 @@ app.use("/api", apiLimiter);
 // ============================================================================
 app.get("/api/health", async (_req, res) => {
   let organigrama = { total: 0, fuente: "vacío" };
-  try {
-    organigrama = await organigramaInfo();
-  } catch {
-    /* el directorio no es crítico para el health */
-  }
+  let normativa = { total: 0, fuente: "vacío" };
+  try { organigrama = await organigramaInfo(); } catch { /* no crítico */ }
+  try { normativa = await normativaInfo(); } catch { /* no crítico */ }
   res.json({
     ok: true,
     model: MODEL_CONFIG.default,
@@ -137,6 +136,7 @@ app.get("/api/health", async (_req, res) => {
     authEnabled: !AUTH_DISABLED,
     emailConfigured: EMAIL_CONFIGURED,
     organigrama,
+    normativa,
     templateTypes: TEMPLATE_TYPES,
   });
 });
@@ -277,6 +277,18 @@ const informeUpload = multer({
   },
 });
 
+// Extrae texto plano de un archivo (PDF/DOCX/TXT/EML) — lo usa el adjunto de
+// "procedimiento correcto" y cualquier flujo que necesite texto de un archivo.
+app.post("/api/extraer-texto", requireToken, informeUpload.single("archivo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Falta el archivo (campo 'archivo')" });
+    const texto = (await extractTextFromBuffer(req.file.buffer, req.file.mimetype, req.file.originalname)).trim();
+    res.json({ texto, chars: texto.length, filename: req.file.originalname });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 app.post("/api/cartas/analizar-informe", generateLimiter, informeUpload.single("archivo"), async (req, res) => {
   try {
     let texto = "";
@@ -290,7 +302,8 @@ app.post("/api/cartas/analizar-informe", generateLimiter, informeUpload.single("
       return res.status(400).json({ error: "Pega el texto del informe / hilo de correos (mínimo 30 caracteres) o sube un archivo legible." });
     }
     const t0 = Date.now();
-    const { output, usage } = await analizarInforme(texto);
+    const normativa = await buscarNormativa(texto.slice(0, 4000), 8).catch(() => []);
+    const { output, usage } = await analizarInforme(texto, { normativa });
     res.json({ analisis: output, elapsedMs: Date.now() - t0, usage });
   } catch (err) {
     console.error("[/api/cartas/analizar-informe] error:", (err as Error).message);
@@ -456,7 +469,9 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
         outputJson: c.finalEditedOutput ?? c.outputJson,
       }));
 
-    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
+    // Sustento: recupera los extractos relevantes de los reglamentos de Poderosa (RAG estricto).
+    const normativa = await buscarNormativa(`${v.input.faltaTipificada || ""}. ${v.input.conducta || ""}`, 8).catch(() => []);
+    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({
@@ -541,7 +556,8 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
         outputJson: c.finalEditedOutput ?? c.outputJson,
       }));
 
-    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
+    const normativa = await buscarNormativa(`${v.input.hechosImputados || ""}. ${v.input.evaluacion || ""}`, 8).catch(() => []);
+    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({

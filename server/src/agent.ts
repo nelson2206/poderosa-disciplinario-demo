@@ -75,7 +75,12 @@ export type Carta1Input = {
   };
   /** Inciso aplicable del Art. 76° del RIT (p.ej. "v" para información inexacta/falsa). */
   art76Inciso?: string;
+  /** Contexto opcional: procedimiento/manual de cómo debió ejecutarse la labor (para contrastar la falta). NO es sustento legal. */
+  procedimientoCorrecto?: string;
 };
+
+/** Extracto recuperado de los reglamentos de Poderosa (RAG) — única fuente de sustento. */
+export type NormativaExtracto = { doc: string; ref: string; texto: string };
 
 export type Carta1Output = {
   asunto: string;
@@ -248,6 +253,41 @@ async function chatJSON(opts: {
   return { text, usage: extractUsage(opts.model, response) };
 }
 
+// Sustento normativo (RAG estricto): los extractos recuperados de los reglamentos
+// de Poderosa son la ÚNICA fuente válida de citas legales.
+function normativaBlock(hits?: NormativaExtracto[]): string {
+  if (!hits || hits.length === 0) {
+    return [
+      "",
+      "## Base normativa de Poderosa — ÚNICA fuente de sustento",
+      "⚠ No se recuperaron extractos del índice normativo de Poderosa para este caso. NO cites artículos que no puedas sustentar con un documento de Poderosa, ni recurras a normas externas (D.L. 728, etc.): pobla `warnings[]` indicando que falta sustento normativo (índice no disponible o sin coincidencias) y que Legal debe completarlo.",
+      "",
+    ].join("\n");
+  }
+  const items = hits.map((h) => `- [${h.doc} · ${h.ref}]\n${h.texto}`).join("\n\n");
+  return [
+    "",
+    "## Base normativa de Poderosa — ÚNICA fuente de sustento legal",
+    "El sustento de la medida disciplinaria debe basarse EXCLUSIVAMENTE en los siguientes extractos de los reglamentos internos de Poderosa. Cita el documento y el artículo/numeral EXACTO (p.ej. \"RIT, Artículo 76°\" o \"RISST, numeral 4.1.6\"). Está PROHIBIDO citar normas que no aparezcan abajo o invocar legislación externa (D.L. 728, D.S. 024-2016-EM, etc.) salvo que esté contenida en estos extractos. Si la conducta imputada NO encuentra sustento aquí, NO inventes: pobla `warnings[]` señalando el vacío de sustento.",
+    "",
+    items,
+    "",
+  ].join("\n");
+}
+
+function procedimientoBlock(text?: string): string {
+  if (!text || !text.trim()) return "";
+  return [
+    "",
+    "## Procedimiento correcto (contexto del caso — cómo debió ejecutarse la labor)",
+    "Usa esto SOLO como contexto para describir con precisión qué hizo o dejó de hacer el trabajador frente a cómo debió ejecutarse la labor. NO es sustento legal — el sustento sale únicamente de la base normativa de arriba.",
+    "```",
+    text.slice(0, 8000),
+    "```",
+    "",
+  ].join("\n");
+}
+
 function plantillaClienteBlock(text?: string, label?: string): string {
   if (!text) return "";
   return [
@@ -297,6 +337,7 @@ export async function generateCarta1(
     plantillaClienteTexto?: string;
     plantillaClienteLabel?: string;
     exemplary?: { caseSummary: string; outputJson: unknown }[];
+    normativa?: NormativaExtracto[];
   } = {}
 ): Promise<{ output: Carta1Output; usage: ModelUsage }> {
   const system = await loadPrompt("system.md");
@@ -316,6 +357,8 @@ export async function generateCarta1(
   ].join("\n");
 
   const variablePart = [
+    normativaBlock(options.normativa),
+    procedimientoBlock(input.procedimientoCorrecto),
     "## Datos del caso",
     "```json",
     JSON.stringify(input, null, 2),
@@ -476,6 +519,7 @@ export async function generateCarta2(
     plantillaClienteTexto?: string;
     plantillaClienteLabel?: string;
     exemplary?: { caseSummary: string; outputJson: unknown }[];
+    normativa?: NormativaExtracto[];
   } = {}
 ): Promise<{ output: Carta2Output; usage: ModelUsage }> {
   const system = await loadPrompt("system.md");
@@ -490,7 +534,7 @@ export async function generateCarta2(
     exemplaryBlock(options.exemplary),
   ].join("\n");
 
-  const variablePart = ["## Datos del caso", "```json", JSON.stringify(input, null, 2), "```"].join("\n");
+  const variablePart = [normativaBlock(options.normativa), "## Datos del caso", "```json", JSON.stringify(input, null, 2), "```"].join("\n");
 
   const { text, usage } = await chatJSON({
     model: MODEL_GENERATOR,
@@ -529,7 +573,7 @@ export type AnalisisInformeOutput = {
 };
 
 const ANALISIS_PREFIX = [
-  "Eres analista de RR.HH. de Compañía Minera Poderosa. Te entregan el TEXTO de un informe de incidente o un hilo de correos. Extrae los datos para armar una medida disciplinaria y propón las normas/cláusulas que la carta debería citar, fundándote en el marco legal del system prompt (TUO D.L. 728, RIT, D.S. 024-2016-EM, Ley 29783, precedente TFL 568-2021, PETS).",
+  "Eres analista de RR.HH. de Compañía Minera Poderosa. Te entregan el TEXTO de un informe de incidente o un hilo de correos. Extrae los datos para armar una medida disciplinaria y propón las normas/cláusulas que la carta debería citar. IMPORTANTE: las normas propuestas deben provenir EXCLUSIVAMENTE de la 'Base normativa de Poderosa' incluida más abajo (reglamentos internos). Cita documento + artículo/numeral exacto. No invoques legislación externa que no aparezca en esos extractos.",
   "",
   "Devuelve ÚNICAMENTE un bloque JSON con este esquema EXACTO:",
   "```json",
@@ -554,14 +598,17 @@ const ANALISIS_PREFIX = [
   "- `unidad` solo puede ser exactamente \"Marañón\", \"Santa María\" o \"Palca\"; si no consta, null.",
   "- `conducta` debe respetar la presunción de inocencia (es para una Carta 1 de imputación): describe tiempo, lugar, modo y quién observó, sin declarar culpable al trabajador.",
   "- `tipoSugerido` = \"decision-final\" SOLO si el texto evidencia que ya hubo descargo del trabajador o venció su plazo; en otro caso \"carta1\".",
-  "- `normasPropuestas`: cita artículos/incisos concretos (D.L. 728, RIT, D.S. 024-2016-EM, Ley 29783, PETS). Cada uno con un `detalle` de por qué aplica. Si el hecho es de seguridad minera (EPP, PETS, PETAR, zona restringida), incluye D.S. 024-2016-EM.",
+  "- `normasPropuestas`: cita SOLO artículos/numerales presentes en la 'Base normativa de Poderosa' de abajo (documento + ref exacta), cada uno con un `detalle` de por qué aplica. Si no hay extractos que sustenten el hecho, deja `normasPropuestas` vacío y anótalo en `notas` (que Legal complete el sustento). No cites normas externas que no aparezcan en los extractos.",
   "- Sé conservador: ante duda, baja la `confianza` y explica en `notas`.",
 ].join("\n");
 
-export async function analizarInforme(texto: string): Promise<{ output: AnalisisInformeOutput; usage: ModelUsage }> {
+export async function analizarInforme(
+  texto: string,
+  options: { normativa?: NormativaExtracto[] } = {}
+): Promise<{ output: AnalisisInformeOutput; usage: ModelUsage }> {
   const system = await loadPrompt("system.md");
   const recorte = texto.length > 24000 ? texto.slice(0, 24000) + "\n\n[...texto truncado...]" : texto;
-  const variablePart = ["## Texto del informe / hilo de correos", "```", recorte, "```"].join("\n");
+  const variablePart = [normativaBlock(options.normativa), "## Texto del informe / hilo de correos", "```", recorte, "```"].join("\n");
 
   const { text, usage } = await chatJSON({
     model: MODEL_GENERATOR,

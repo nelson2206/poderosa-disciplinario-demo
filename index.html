@@ -1794,6 +1794,20 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             </div>
           </div>
 
+          <!-- ¿Cómo debió ejecutarse la labor? (contexto opcional) -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-header"><h2>📘 ¿Cómo debió ejecutarse la labor? <span style="font-weight:400;font-size:12px;color:var(--gray-muted);">(opcional · contexto)</span></h2></div>
+            <div style="padding:18px 20px;">
+              <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Pega o sube el <strong>procedimiento / manual / proceso</strong> de cómo debía hacerse la labor. La IA lo usa como contexto para describir con precisión qué hizo mal el colaborador. <strong>No</strong> es el sustento legal (ese sale exclusivamente de los reglamentos de Poderosa).</div>
+              <textarea id="nc-proc-texto" rows="5" placeholder="Pega aquí el procedimiento correcto, o sube el archivo…" style="width:100%;font-size:12.5px;"></textarea>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                <label for="nc-proc-file" class="btn" style="font-size:12px;cursor:pointer;">📎 Subir procedimiento (PDF · Word · TXT)</label>
+                <input type="file" id="nc-proc-file" accept=".pdf,.docx,.txt,.md,.html,.htm" style="display:none;">
+                <span id="nc-proc-status" style="font-size:11.5px;color:var(--gray-muted);"></span>
+              </div>
+            </div>
+          </div>
+
           <div class="card" style="margin-top:14px;">
             <div class="card-header"><h2>Datos administrativos</h2></div>
             <div style="padding:18px 20px;">
@@ -3881,7 +3895,8 @@ function ncGatherIncidente() {
     petsNombre: (document.getElementById("nc-pets-nombre")?.value || "").trim(),
     petsNumerales: (document.getElementById("nc-pets-numerales")?.value || "").trim(),
     numeroCarta: (document.getElementById("nc-num-carta")?.value || "").trim(),
-    fechaEmisionISO: document.getElementById("nc-fecha-emision")?.value || ""
+    fechaEmisionISO: document.getElementById("nc-fecha-emision")?.value || "",
+    procedimientoCorrecto: (document.getElementById("nc-proc-texto")?.value || "").trim()
   };
 }
 
@@ -3939,7 +3954,8 @@ async function ncGenerar() {
         nombre: inf.petsNombre || "",
         codigo: inf.petsCodigo || "",
         numerales: numerales
-      } : undefined
+      } : undefined,
+      procedimientoCorrecto: inf.procedimientoCorrecto || undefined
     };
 
     const res = await podFetch(`${AI_API_BASE}/api/cartas/generate`, {
@@ -4524,6 +4540,30 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     finally{ btn.disabled=false; btn.textContent=orig; }
   }
   $("nc-analizar-btn")?.addEventListener("click", analizar);
+})();
+
+// ============================================================================
+// Adjunto opcional: procedimiento/manual de cómo debió ejecutarse la labor
+// ============================================================================
+(function(){
+  const fileInput = document.getElementById("nc-proc-file");
+  if (!fileInput) return;
+  fileInput.addEventListener("change", async () => {
+    const f = fileInput.files[0]; if (!f) return;
+    const status = document.getElementById("nc-proc-status");
+    const ta = document.getElementById("nc-proc-texto");
+    status.style.color = "var(--gray-muted)"; status.textContent = `Extrayendo texto de ${f.name}…`;
+    try {
+      const fd = new FormData(); fd.append("archivo", f);
+      const res = await podFetch(`${AI_API_BASE}/api/extraer-texto`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      ta.value = data.texto || "";
+      status.style.color = "var(--green)"; status.textContent = `✓ ${data.chars.toLocaleString()} caracteres extraídos de ${data.filename}. Revisa/edita arriba.`;
+    } catch (err) {
+      status.style.color = "var(--terracotta)"; status.textContent = "Error: " + err.message;
+    }
+  });
 })();
 </script>
 </body>
