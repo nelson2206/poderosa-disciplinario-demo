@@ -92,14 +92,20 @@ function dot(a: number[], b: number[]): number {
  * consulta (cosine similarity). Devuelve [] si no hay índice o no se pudo embeber
  * (el llamador debe entonces advertir que no hay sustento disponible).
  */
-export async function buscarNormativa(query: string, k = 8): Promise<NormativaHit[]> {
+export async function buscarNormativa(query: string, k = 8, opts: { preferRIT?: boolean } = {}): Promise<NormativaHit[]> {
   const idx = await load();
   if (!idx.chunks.length || !query || query.trim().length < 3) return [];
   const model = idx.model || process.env.EMBEDDING_MODEL || "text-embedding-3-small";
   const q = await embedQuery(query, model);
   if (!q) return [];
   const qn = Math.hypot(...q) || 1;
-  const scored = idx.chunks.map((c, i) => ({ c, score: dot(q, c.embedding) / ((norms?.[i] || 1) * qn) }));
+  // El RIT es el documento "REGLAMENTO INTERNO" (no "… DE SEGURIDAD" ni "… DE MEDIO").
+  const esRIT = (doc: string) => /^reglamento interno$/i.test((doc || "").trim());
+  const scored = idx.chunks.map((c, i) => {
+    let score = dot(q, c.embedding) / ((norms?.[i] || 1) * qn);
+    if (opts.preferRIT && esRIT(c.doc)) score *= 1.12; // sesgo para que el top-K traiga más artículos del RIT
+    return { c, score };
+  });
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, k).map(({ c, score }) => ({ doc: c.doc, ref: c.ref, texto: c.texto, score }));
 }

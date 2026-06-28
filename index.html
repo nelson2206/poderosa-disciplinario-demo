@@ -1539,7 +1539,15 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="desc">La carta se actualiza en vivo según los datos elegidos.</div>
 
             <div class="field readonly"><label>Caso</label><input id="c2-caso-label" value="CD-2026-047 · Juan Pérez Rojas" readonly></div>
-            <div class="field"><label for="c2-cargar-caso">Cargar caso (N° de la imputación)</label>
+            <div class="field"><label for="c2-buscar-colab">Buscar colaborador (trae su imputación previa)</label>
+              <div style="display:flex;gap:8px;">
+                <input id="c2-buscar-colab" type="text" placeholder="Nombre del trabajador imputado…" style="flex:1;">
+                <button class="btn" id="c2-buscar-btn" type="button" style="font-size:12px;white-space:nowrap;">Buscar</button>
+              </div>
+              <select id="c2-buscar-result" style="display:none;width:100%;margin-top:6px;font-size:12px;"></select>
+              <div id="c2-buscar-status" style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Busca en el historial de imputaciones generadas y carga el caso para partir de ahí.</div>
+            </div>
+            <div class="field"><label for="c2-cargar-caso">…o cargar por N° de caso</label>
               <div style="display:flex;gap:8px;">
                 <input id="c2-cargar-caso" type="text" placeholder="p.ej. NC-1234567" style="flex:1;">
                 <button class="btn" id="c2-cargar-btn" type="button" style="font-size:12px;white-space:nowrap;">Cargar</button>
@@ -1574,8 +1582,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="field"><label for="c2-descargo">Descargo del trabajador (adjunta el archivo o pega el correo)</label>
               <textarea id="c2-descargo" rows="4" placeholder="Pega aquí el descargo del trabajador (o el correo), o súbelo abajo. La IA lo evaluará y refutará los argumentos que no procedan en la sección de ANÁLISIS.">El trabajador reconoce el incidente pero alega que el área de mantenimiento no había repuesto los respiradores en el dispensario esa mañana. Adjunta foto del dispensario vacío y reporte interno #4521.</textarea>
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;">
-                <label for="c2-descargo-file" class="btn" style="font-size:11.5px;cursor:pointer;">📎 Subir descargo (PDF · Word · TXT · EML)</label>
-                <input type="file" id="c2-descargo-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml" style="display:none;">
+                <label for="c2-descargo-file" class="btn" style="font-size:11.5px;cursor:pointer;">📎 Subir descargo (PDF · Word · TXT · EML · Imagen)</label>
+                <input type="file" id="c2-descargo-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml,.png,.jpg,.jpeg,.webp,image/*" style="display:none;">
                 <span id="c2-descargo-status" style="font-size:11px;color:var(--gray-muted);"></span>
               </div>
             </div>
@@ -1722,8 +1730,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Pega el <strong>informe del incidente</strong> o el <strong>hilo de correos</strong>, o sube el archivo. La IA extrae los datos del trabajador y del incidente, y te propone las <strong>normas / cláusulas a citar</strong> — las revisas antes de generar la medida.</div>
               <textarea id="nc-informe-texto" rows="6" placeholder="Pega aquí el informe o el hilo de correos…" style="width:100%;font-size:12.5px;"></textarea>
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;">
-                <label for="nc-informe-file" class="btn" style="font-size:12px;cursor:pointer;">📎 …o subir archivo (PDF · Word · TXT · EML)</label>
-                <input type="file" id="nc-informe-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml" style="display:none;">
+                <label for="nc-informe-file" class="btn" style="font-size:12px;cursor:pointer;">📎 …o subir archivo (PDF · Word · EML · Imagen)</label>
+                <input type="file" id="nc-informe-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml,.png,.jpg,.jpeg,.webp,image/*" style="display:none;">
                 <span id="nc-informe-filename" style="font-size:11.5px;color:var(--gray-muted);"></span>
                 <button class="btn primary" id="nc-analizar-btn" style="background:var(--gold);font-size:13px;margin-left:auto;">✨ Analizar y extraer campos</button>
               </div>
@@ -1817,8 +1825,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Pega o sube el <strong>procedimiento / manual / proceso</strong> de cómo debía hacerse la labor. La IA lo usa como contexto para describir con precisión qué hizo mal el colaborador. <strong>No</strong> es el sustento legal (ese sale exclusivamente de los reglamentos de Poderosa).</div>
               <textarea id="nc-proc-texto" rows="5" placeholder="Pega aquí el procedimiento correcto, o sube el archivo…" style="width:100%;font-size:12.5px;"></textarea>
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
-                <label for="nc-proc-file" class="btn" style="font-size:12px;cursor:pointer;">📎 Subir procedimiento (PDF · Word · TXT)</label>
-                <input type="file" id="nc-proc-file" accept=".pdf,.docx,.txt,.md,.html,.htm" style="display:none;">
+                <label for="nc-proc-file" class="btn" style="font-size:12px;cursor:pointer;">📎 Subir procedimiento (PDF · Word · Imagen)</label>
+                <input type="file" id="nc-proc-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.png,.jpg,.jpeg,.webp,image/*" style="display:none;">
                 <span id="nc-proc-status" style="font-size:11.5px;color:var(--gray-muted);"></span>
               </div>
             </div>
@@ -2962,6 +2970,52 @@ document.getElementById("c2-cargar-btn")?.addEventListener("click", () => {
     st.style.color = "var(--green)";
     st.textContent = `✓ Caso cargado: ${(snap.trabajador||{}).nombre || "—"}${r&&r.categoria?` · sanción pre-seleccionada: ${CAT_TO_C2LABEL[r.categoria]||r.categoria}${r.categoria==="suspension"&&r.diasSuspension?` (${r.diasSuspension} d)`:""}`:""}. Revisa/cambia y redacta.`;
   }
+});
+
+// Buscar colaborador → su imputación previa en el historial (Supabase)
+let c2BuscarCartas = [];
+document.getElementById("c2-buscar-btn")?.addEventListener("click", async () => {
+  const st = document.getElementById("c2-buscar-status");
+  const sel = document.getElementById("c2-buscar-result");
+  const q = (document.getElementById("c2-buscar-colab")?.value || "").trim();
+  const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  if (q.length < 2) { if(st){ st.textContent="Escribe al menos 2 letras del nombre."; st.style.color="var(--terracotta)"; } return; }
+  if (st) { st.textContent="Buscando en el historial…"; st.style.color="var(--gray-muted)"; }
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas?tipo=carta1&limit=200`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const nq = norm(q);
+    c2BuscarCartas = (data.cartas || []).filter(c => norm(c.trabajadorNombre).includes(nq));
+    if (!c2BuscarCartas.length) { sel.style.display="none"; if(st){ st.textContent=`Sin imputaciones para "${q}" en el historial.`; st.style.color="var(--terracotta)"; } return; }
+    sel.innerHTML = `<option value="">— ${c2BuscarCartas.length} imputación(es) — elige una —</option>` + c2BuscarCartas.map((c,i)=>`<option value="${i}">${escapeHtml(c.trabajadorNombre)} · ${escapeHtml(c.caseId||"")} · ${escapeHtml((c.generatedAt||"").slice(0,10))}</option>`).join("");
+    sel.style.display="block";
+    if (st) { st.textContent=`${c2BuscarCartas.length} encontrada(s). Elige una para cargarla.`; st.style.color="var(--green)"; }
+  } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
+});
+document.getElementById("c2-buscar-result")?.addEventListener("change", async (e) => {
+  const i = e.target.value; if (i==="") return;
+  const summary = c2BuscarCartas[Number(i)]; if(!summary) return;
+  const st = document.getElementById("c2-buscar-status");
+  if (st) { st.textContent="Cargando la imputación…"; st.style.color="var(--gray-muted)"; }
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${summary.id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const rec = data.carta || {}, inp = rec.inputJson || {}, out = rec.outputJson || {}, tr = inp.trabajador || {};
+    const unidad = tr.unidad || rec.unidad || "Marañón";
+    const ls = c2LeerSnapshot(rec.caseId) || {};
+    const snap = {
+      caso: rec.caseId,
+      trabajador: { nombre: tr.nombre || rec.trabajadorNombre || "—", dni: tr.dni || rec.trabajadorDni || "—", unidad, puestoUnidad: tr.puestoUnidad || `${tr.puesto||"—"} — Unidad ${unidad}` },
+      carta1: { numero: out.numeroCarta || inp.numeroCarta || "", fechaISO: (rec.generatedAt || "").slice(0,10) },
+      hechosImputados: inp.conducta || (out.cuerpo && (out.cuerpo.hechosDetectados || out.cuerpo.hechosImputados)) || "",
+      sancionRecomendada: ls.sancionRecomendada || null
+    };
+    c2CargarCaso(snap);
+    c2ToggleDias();
+    if (st) { st.style.color="var(--green)"; st.textContent=`✓ Caso ${rec.caseId} cargado: ${snap.trabajador.nombre}. Pega/sube el descargo y redacta la decisión final.`; }
+  } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
 });
 
 // Logo + pie oficiales en el preview de Decisión final al cargar la página
@@ -4270,28 +4324,26 @@ function ncRenderPreview() {
     </div>
   `;
 
+  const mp = Array.isArray(cuerpo.mediosProbatorios) ? cuerpo.mediosProbatorios : (cuerpo.mediosProbatorios ? String(cuerpo.mediosProbatorios).split(/\n+/) : []);
+  const seccion = (titulo, contenido, extra) => (contenido || extra) ? `<p style="margin-top:14px;font-weight:700;">${titulo}</p>${ptag(contenido || "")}${extra || ""}` : "";
   root.innerHTML = `
     ${podLetterheadHTML()}
     <p style="text-align:right;font-size:12.5px;">${escapeHtml(fechaCompleta || "Pataz, [fecha]")}</p>
     <p style="font-size:12.5px;"><strong>${escapeHtml(c.numeroCarta || "")}</strong></p>
-    <p style="margin-top:18px;">${escapeHtml(d.tratamiento || "Señor,")}</p>
+    <p style="margin-top:16px;">${escapeHtml(d.tratamiento || "Señor:")}</p>
     <p><strong>${escapeHtml((d.nombre || "").toUpperCase())}</strong></p>
     <p>${escapeHtml(d.puestoUnidad || "")}</p>
-    <p style="margin-top:18px;"><strong>Asunto:</strong> ${escapeHtml(c.asunto || "Imputación de incumplimiento de obligaciones")}</p>
-    ${cuerpo.encabezado ? `<p>${escapeHtml(cuerpo.encabezado)}</p>` : ""}
+    <p>Presente.-</p>
+    <p style="margin-top:12px;font-weight:700;text-transform:uppercase;">REFERENCIA: ${escapeHtml(cuerpo.referencia || "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO")}</p>
+    <p style="margin-top:12px;">${escapeHtml(cuerpo.encabezado || "De nuestra consideración:")}</p>
     ${ptag(cuerpo.introduccion || "")}
-    ${ptag(cuerpo.hechosImputados || "")}
-    ${evidenciasHTML}
-    ${ptag(cuerpo.normaAplicable || "")}
-    ${ptag(cuerpo.derechoDefensa || "")}
-    ${cuerpo.canalDescargo ? `<p>${escapeHtml(cuerpo.canalDescargo)}${cuerpo.cierreNoSancion ? " <strong>" + escapeHtml(cuerpo.cierreNoSancion) + "</strong>" : ""}</p>` : ""}
-    <p style="margin-top:20px;">${escapeHtml(cuerpo.despedida || "Atentamente,")}</p>
-    ${anexosArr.length ? `
-      <div style="margin-top:24px;">
-        <p><strong>Anexos:</strong></p>
-        ${anexosArr.map(a => `<p style="margin-left:12px;">${escapeHtml(a)}</p>`).join("")}
-      </div>
-    ` : ""}
+    ${seccion("HECHOS DETECTADOS / IMPUTADOS", cuerpo.hechosDetectados, evidenciasHTML)}
+    ${seccion("TIPIFICACIÓN DE LAS FALTAS / NORMATIVA PRESUNTAMENTE VULNERADA", cuerpo.tipificacion)}
+    ${mp.length ? `<p style="margin-top:14px;font-weight:700;">MEDIOS PROBATORIOS QUE SUSTENTAN LOS HECHOS DESCRITOS</p><ul style="margin:4px 0 0 18px;padding:0;">${mp.map(m => `<li>${escapeHtml(m)}</li>`).join("")}</ul>` : ""}
+    ${seccion("CONCLUSIÓN PRELIMINAR", cuerpo.conclusionPreliminar)}
+    ${seccion("PLAZO PARA PRESENTAR DESCARGOS", cuerpo.plazoDescargos)}
+    <p style="margin-top:18px;">${escapeHtml(cuerpo.despedida || "Atentamente,")}</p>
+    ${c.firma ? `<div style="margin-top:30px;"><div style="border-top:1px solid #333;width:260px;"></div><strong>${escapeHtml((c.firma.nombre||"").toUpperCase())}</strong><br><span style="color:#555;">${escapeHtml(c.firma.cargo||"")}</span><br><span style="color:#555;">${escapeHtml(c.firma.empresa||"Compañía Minera Poderosa S.A.")}</span></div>` : ""}
     ${podFooterHTML()}
   `;
 }
@@ -4633,6 +4685,16 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     if(window.ncLookupJefe) window.ncLookupJefe();
   }
 
+  // Multi-persona: cargar UNA persona específica en el wizard (su trabajador + conducta + falta).
+  function aplicarPersona(p){
+    if(!p) return;
+    setVal("nc-trab-nombre", p.nombre); setVal("nc-trab-dni", p.dni); setVal("nc-trab-puesto", p.puesto); setSelect("nc-trab-unidad", p.unidad);
+    if(p.conducta){ const ta=document.getElementById("nc-inc-conducta"); if(ta) ta.value=p.conducta; }
+    if(ncState.analisis) ncState.analisis.faltaTipificada = p.faltaTipificada || ncState.analisis.faltaTipificada;
+    ncState.caseId = ""; // cada persona = un caso/carta nuevo
+    if(window.ncLookupJefe) window.ncLookupJefe();
+  }
+
   function renderResumen(a){
     const box=$("nc-analisis-resumen"); if(!box) return;
     const conf=a.confianza||"?";
@@ -4640,6 +4702,17 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     const normas=(a.normasPropuestas||[]).map(n=>`<li><strong>${escapeHtml(n.norma||"")}</strong>${n.detalle?` — ${escapeHtml(n.detalle)}`:""}</li>`).join("");
     const notas=(a.notas||[]).map(n=>`<li>${escapeHtml(n)}</li>`).join("");
     const tipoTxt = a.tipoSugerido==="decision-final" ? "Carta de decisión final" : "Imputación de falta";
+    const personas = Array.isArray(a.personas) ? a.personas : [];
+    const personasHtml = personas.length > 1 ? `<div style="margin-top:10px;padding:10px 12px;background:#EEF5F7;border:1px solid var(--teal);border-radius:7px;">
+        <strong style="color:var(--teal);">👥 ${personas.length} personas a sancionar detectadas</strong> — genera una carta por persona:
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          ${personas.map((p,i)=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn nc-persona-btn" data-pi="${i}" style="font-size:11px;padding:4px 10px;">Usar esta persona</button>
+            <span style="font-size:12px;"><strong>${escapeHtml(p.nombre||"—")}</strong>${p.puesto?` · ${escapeHtml(p.puesto)}`:""} — ${escapeHtml((p.faltaTipificada||p.conducta||"").slice(0,70))}</span>
+          </div>`).join("")}
+        </div>
+        <div style="font-size:11px;color:var(--gray-muted);margin-top:5px;">Elige una, genera su carta (paso 3), vuelve aquí y elige la siguiente.</div>
+      </div>` : "";
     const sp = a.sancionPropuesta;
     const catLabel = { amonestacion:"Amonestación escrita", suspension:"Suspensión sin goce", despido:"Despido", archivo:"Archivo del procedimiento (sin sanción)" };
     const labelSancion = (cat,dias)=> cat ? `${escapeHtml(catLabel[cat]||cat)}${cat==="suspension"&&dias?` · ${escapeHtml(String(dias))} día(s)`:""}` : "—";
@@ -4674,6 +4747,7 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
         <div style="font-family:var(--font-head);font-size:11px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Resumen del análisis — revísalo antes de generar</div>
         <div style="font-size:12.5px;color:var(--gray-text);line-height:1.5;">
           <div><strong>Falta:</strong> ${escapeHtml(a.faltaTipificada||"—")} · <strong>Gravedad:</strong> ${escapeHtml(a.gravedadEstimada||"—")} · <strong>Tipo sugerido:</strong> ${tipoTxt} · <strong style="color:${colorConf};">Confianza: ${escapeHtml(conf)}</strong></div>
+          ${personasHtml}
           ${spHtml}
           <div style="margin-top:10px;font-weight:600;color:var(--teal);">Normas / cláusulas que citará la carta:</div>
           <ul style="margin:6px 0 0 18px;padding:0;">${normas||"<li>(no se identificaron — revísalo)</li>"}</ul>
@@ -4682,6 +4756,12 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
           <div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">Los campos de los pasos 1 y 2 se rellenaron con lo extraído. Ajusta lo que haga falta y pulsa <strong>Generar carta con IA</strong> — la carta citará exactamente estas normas.</div>
         </div>
       </div>`;
+    // Multi-persona: botones "Usar esta persona"
+    box.querySelectorAll(".nc-persona-btn").forEach(btn => btn.addEventListener("click", ()=>{
+      aplicarPersona(personas[Number(btn.dataset.pi)]);
+      box.querySelectorAll(".nc-persona-btn").forEach(b=>{ b.textContent="Usar esta persona"; b.style.background=""; });
+      btn.textContent="✓ Cargada — ve al paso 3"; btn.style.background="var(--green)";
+    }));
     // Botón "Preparar Carta de decisión final con esta sanción" (Path 1)
     $("nc-continuar-decision")?.addEventListener("click", ()=>{
       if (typeof ncGatherTrabajador === "function") ncGatherTrabajador();

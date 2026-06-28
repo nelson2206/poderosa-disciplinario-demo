@@ -87,15 +87,17 @@ export type Carta1Output = {
   fecha: string;
   numeroCarta: string;
   destinatario: { tratamiento: string; nombre: string; dni: string; puestoUnidad: string };
+  /** Estructura oficial de la carta de IMPUTACIÓN de Poderosa (ref. "IMPUTACION - BENDEZU"). */
   cuerpo: {
-    encabezado: string;
-    introduccion: string;
-    hechosImputados: string;
-    normaAplicable: string;
-    derechoDefensa: string;
-    canalDescargo: string;
-    cierreNoSancion: string;
-    despedida: string;
+    referencia: string;          // "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO"
+    encabezado: string;          // "De nuestra consideración:"
+    introduccion: string;        // apertura: Art. 9° LPCL + datos PODEROSA + se da inicio al proceso disciplinario distinto al despido
+    hechosDetectados: string;    // HECHOS DETECTADOS / IMPUTADOS — en condicional ("habría", "configurarían")
+    tipificacion: string;        // TIPIFICACIÓN: citas LITERALES, mayormente del RIT, luego RISST/Código
+    mediosProbatorios: string[]; // lista de medios probatorios (informe, capturas, etc.)
+    conclusionPreliminar: string;// CONCLUSIÓN PRELIMINAR ("usted habría incumplido…")
+    plazoDescargos: string;      // PLAZO PARA PRESENTAR DESCARGOS (días + canal + cierre)
+    despedida: string;           // "Atentamente,"
   };
   firma: { nombre: string; cargo: string; empresa: string };
   anexos: string[];
@@ -446,6 +448,30 @@ export async function extractTrabajadorFromImage(
 }
 
 // =============================================================================
+// Transcripción de documentos en imagen (informe / descargo / procedimiento)
+// =============================================================================
+
+/** Transcribe el texto completo de un documento fotografiado/escaneado (PNG/JPEG/WEBP) con el modelo de visión. */
+export async function transcribirImagen(imageBase64: string, mediaType: string): Promise<{ texto: string; usage: ModelUsage }> {
+  const { text, usage } = await chatJSON({
+    model: MODEL_VISION,
+    system: "Eres un asistente de RR.HH. que transcribe documentos a partir de imágenes (informes de incidente, correos, descargos, procedimientos). Devuelve el TEXTO completo y fiel del documento, conservando estructura, fechas, nombres, números, secciones y viñetas. No resumas, no interpretes y no inventes; si algo es ilegible, indícalo entre corchetes [ilegible].",
+    userContent: [
+      { type: "text", text: 'Transcribe TODO el texto legible de esta imagen del documento. Devuelve un único JSON: {"texto": "…transcripción completa…"}.' },
+      { type: "image_url", image_url: { url: `data:${mediaType};base64,${imageBase64}` } },
+    ],
+    maxTokens: 8000,
+    reasoningEffort: "low",
+  });
+  try {
+    const parsed = extractJson(text) as { texto?: string };
+    return { texto: (parsed.texto || "").trim(), usage };
+  } catch {
+    return { texto: text.trim(), usage }; // fallback: texto crudo
+  }
+}
+
+// =============================================================================
 // Clasificación del incidente → tipo de carta
 // =============================================================================
 
@@ -560,8 +586,20 @@ export async function generateCarta2(
 
 export type NormaPropuesta = { norma: string; detalle: string };
 
+export type PersonaImputada = {
+  nombre: string | null;
+  dni: string | null;
+  puesto: string | null;
+  unidad: "Marañón" | "Santa María" | "Palca" | null;
+  conducta: string;
+  faltaTipificada: string;
+  gravedad: "leve" | "grave" | "muy grave";
+};
+
 export type AnalisisInformeOutput = {
   trabajador: { nombre: string | null; dni: string | null; puesto: string | null; unidad: "Marañón" | "Santa María" | "Palca" | null };
+  /** TODAS las personas a sancionar detectadas en el informe (1 o más). El primer elemento coincide con `trabajador`/`incidente`. */
+  personas: PersonaImputada[];
   incidente: { fechaHechoISO: string | null; lugar: string | null; conducta: string; testigos: string[] };
   informeOrigen: { numero: string | null; fechaISO: string | null; area: string | null } | null;
   petsAplicable: { nombre: string | null; codigo: string | null; numerales: string[] } | null;
@@ -597,6 +635,7 @@ const ANALISIS_PREFIX = [
   "```json",
   "{",
   '  "trabajador": { "nombre": "Juan Pérez Rojas o null", "dni": "70 234 567 o null", "puesto": "Operador de flotación o null", "unidad": "Marañón | Santa María | Palca | null" },',
+  '  "personas": [ { "nombre": "…", "dni": "… o null", "puesto": "… o null", "unidad": "Marañón | Santa María | Palca | null", "conducta": "la conducta presunta de ESTA persona, en condicional", "faltaTipificada": "falta de esta persona", "gravedad": "leve | grave | muy grave" } ],',
   '  "incidente": { "fechaHechoISO": "2026-06-20T14:30 o 2026-06-20 o null", "lugar": "área / unidad o null", "conducta": "Redacción objetiva y formal del hecho, en presunción de inocencia (usa \'habría\', \'según el reporte\'). NO afirmes culpabilidad.", "testigos": ["Nombre (cargo)"] },',
   '  "informeOrigen": { "numero": "Log-Mina N.° 03 o null", "fechaISO": "2026-06-21 o null", "area": "logística o null" },',
   '  "petsAplicable": { "nombre": "o null", "codigo": "LOG_RLD_PE_013 o null", "numerales": ["4.1.6.3"] },',
@@ -614,6 +653,7 @@ const ANALISIS_PREFIX = [
   "",
   "Reglas:",
   "- Extrae SOLO lo que el texto sustenta. Si un dato no aparece, déjalo null/[] y anótalo en `notas`. NUNCA inventes DNI, nombres, números de informe ni fechas.",
+  "- `personas`: lista a TODAS las personas a las que el informe atribuye una conducta sancionable (un mismo informe puede involucrar a varias). Cada una con su conducta específica y su falta. El PRIMER elemento debe coincidir con `trabajador`/`incidente`. Si solo hay una persona, `personas` tendrá un único elemento. NO incluyas a testigos, jefes que reportan ni terceros que no son objeto de sanción.",
   "- `unidad` solo puede ser exactamente \"Marañón\", \"Santa María\" o \"Palca\"; si no consta, null.",
   "- `conducta` debe respetar la presunción de inocencia (es para una Carta 1 de imputación): describe tiempo, lugar, modo y quién observó, sin declarar culpable al trabajador.",
   "- `tipoSugerido` = \"decision-final\" SOLO si el texto evidencia que ya hubo descargo del trabajador o venció su plazo; en otro caso \"carta1\".",

@@ -11,7 +11,7 @@ import { promises as fs } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, analizarInforme, MODEL_CONFIG, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
+import { generateCarta1, generateCarta2, extractTrabajadorFromImage, transcribirImagen, classifyIncidente, analizarInforme, MODEL_CONFIG, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
 import { extractTextFromBuffer } from "./extract-text.js";
 import {
   getStorage,
@@ -266,23 +266,36 @@ app.post("/api/colaboradores/extraer", generateLimiter, imageUpload.single("imag
 // Acepta texto pegado (JSON { texto }) o un archivo (PDF/DOCX/TXT/MD/HTML/EML).
 // ============================================================================
 
-const ANALISIS_EXT = new Set([".pdf", ".docx", ".txt", ".md", ".html", ".htm", ".eml"]);
+const ANALISIS_EXT = new Set([".pdf", ".docx", ".txt", ".md", ".html", ".htm", ".eml", ".png", ".jpg", ".jpeg", ".webp"]);
+const IMG_MIME = new Set(["image/png", "image/jpeg", "image/webp"]);
 const informeUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ext = (file.originalname.match(/\.[^.]+$/) || [""])[0].toLowerCase();
-    if (ANALISIS_EXT.has(ext) || ALLOWED_MIME.has(file.mimetype)) cb(null, true);
+    if (ANALISIS_EXT.has(ext) || ALLOWED_MIME.has(file.mimetype) || IMG_MIME.has(file.mimetype)) cb(null, true);
     else cb(new Error(`Tipo no soportado: ${file.originalname}. Permitidos: ${[...ANALISIS_EXT].join(", ")} o pega el texto.`));
   },
 });
+
+// Convierte un archivo cargado a texto: si es imagen, lo transcribe con visión; si no, extrae texto.
+async function archivoATexto(file: Express.Multer.File): Promise<string> {
+  const ext = (file.originalname.match(/\.[^.]+$/) || [""])[0].toLowerCase();
+  const esImagen = IMG_MIME.has(file.mimetype) || [".png", ".jpg", ".jpeg", ".webp"].includes(ext);
+  if (esImagen) {
+    const mime = IMG_MIME.has(file.mimetype) ? file.mimetype : (ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg");
+    const { texto } = await transcribirImagen(file.buffer.toString("base64"), mime);
+    return texto;
+  }
+  return extractTextFromBuffer(file.buffer, file.mimetype, file.originalname);
+}
 
 // Extrae texto plano de un archivo (PDF/DOCX/TXT/EML) — lo usa el adjunto de
 // "procedimiento correcto" y cualquier flujo que necesite texto de un archivo.
 app.post("/api/extraer-texto", requireToken, informeUpload.single("archivo"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "Falta el archivo (campo 'archivo')" });
-    const texto = (await extractTextFromBuffer(req.file.buffer, req.file.mimetype, req.file.originalname)).trim();
+    const texto = (await archivoATexto(req.file)).trim();
     res.json({ texto, chars: texto.length, filename: req.file.originalname });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
@@ -293,7 +306,7 @@ app.post("/api/cartas/analizar-informe", generateLimiter, informeUpload.single("
   try {
     let texto = "";
     if (req.file) {
-      texto = await extractTextFromBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+      texto = await archivoATexto(req.file);
     } else if (typeof req.body?.texto === "string") {
       texto = req.body.texto;
     }
@@ -302,7 +315,7 @@ app.post("/api/cartas/analizar-informe", generateLimiter, informeUpload.single("
       return res.status(400).json({ error: "Pega el texto del informe / hilo de correos (mínimo 30 caracteres) o sube un archivo legible." });
     }
     const t0 = Date.now();
-    const normativa = await buscarNormativa(texto.slice(0, 4000), 8).catch(() => []);
+    const normativa = await buscarNormativa(texto.slice(0, 4000), 10, { preferRIT: true }).catch(() => []);
     const { output, usage } = await analizarInforme(texto, { normativa });
     res.json({ analisis: output, elapsedMs: Date.now() - t0, usage });
   } catch (err) {
@@ -470,7 +483,7 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
       }));
 
     // Sustento: recupera los extractos relevantes de los reglamentos de Poderosa (RAG estricto).
-    const normativa = await buscarNormativa(`${v.input.faltaTipificada || ""}. ${v.input.conducta || ""}`, 8).catch(() => []);
+    const normativa = await buscarNormativa(`${v.input.faltaTipificada || ""}. ${v.input.conducta || ""}`, 10, { preferRIT: true }).catch(() => []);
     const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 
@@ -556,7 +569,7 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
         outputJson: c.finalEditedOutput ?? c.outputJson,
       }));
 
-    const normativa = await buscarNormativa(`${v.input.hechosImputados || ""}. ${v.input.evaluacion || ""}`, 8).catch(() => []);
+    const normativa = await buscarNormativa(`${v.input.hechosImputados || ""}. ${v.input.evaluacion || ""}`, 10, { preferRIT: true }).catch(() => []);
     const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 

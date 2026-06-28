@@ -1,108 +1,51 @@
-# Plantilla Carta 1 — Imputación de incumplimiento de obligaciones
+# Plantilla Carta 1 — IMPUTACIÓN de incumplimiento de obligaciones de trabajo
 
-> Plantilla oficial de Compañía Minera Poderosa S.A. (formato observado en CARTA N°073 / N°074 RRHH 2026).
-> Usada cuando se imputa una presunta falta al trabajador antes de evaluar su descargo.
+> Formato oficial real de Poderosa (ref.: "IMPUTACION - BENDEZU OMAR").
+> Es la carta de inicio del procedimiento disciplinario (proceso distinto al despido). Los hechos van en **condicional** (aún no probados): "habría", "configurarían", "no habría", "evidenciaría". NUNCA se afirma la culpabilidad.
 
 ---
 
-## Estructura exacta a respetar
+## Estructura oficial (en este orden)
 
-```
-[línea en blanco]
-Pataz, {fecha en formato "07 de mayo del 2026"}
-CARTA N°{numeroCorrelativo}- RRHH / {año}
+1. **Encabezado**: "Pataz, {fecha}" · destinatario ("Señor:", NOMBRE EN MAYÚSCULAS, cargo, "Presente.-").
+2. **REFERENCIA** (`referencia`): "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO".
+3. **De nuestra consideración:** (`encabezado`).
+4. **Introducción** (`introduccion`): "Mediante la presente carta, que le será notificada, y en atención al artículo 9° del Texto Único Ordenado del Decreto Legislativo N.° 728, Ley de Productividad y Competitividad Laboral (LPCL), COMPAÑÍA MINERA PODEROSA S.A. (en adelante, "PODEROSA" o "la empresa"), identificada con RUC N.° 20137025354 y con domicilio en la calle Coronel Gómez N.° 409, Urb. El Molino – Trujillo, Región La Libertad, cumple con hacer de su conocimiento que, en su condición de trabajador de PODEROSA, se ha advertido la presunta comisión de hechos que configurarían un incumplimiento de sus obligaciones de trabajo, motivo por el cual se da inicio al presente proceso disciplinario distinto al despido, conforme se detalla a continuación:".
+5. **HECHOS DETECTADOS / IMPUTADOS** (`hechosDetectados`): narrativa detallada en **condicional**. Tiempo, lugar, modo, quién lo reportó (informe N°, fecha, área). Describe la conducta presunta y por qué configuraría incumplimiento. Varios párrafos.
+6. **TIPIFICACIÓN DE LAS FALTAS / NORMATIVA PRESUNTAMENTE VULNERADA** (`tipificacion`): "Los hechos anteriormente descritos involucrarían la comisión de faltas laborales conforme a nuestro Reglamento Interno de Trabajo (RIT) … en consecuencia, corresponde considerar las siguientes disposiciones:" seguido de **citas LITERALES** de los artículos. **PRIORIZA EL RIT**: cita el mayor número posible de artículos del **RIT** que apliquen (típicamente Art. 3°, 62°, 63°, 67°, 69°, 70°, 72°, 74°, 75°), y solo luego, si aplica, RISST/RISSO y Código de Ética. Todas las citas deben provenir de la "Base normativa de Poderosa" provista.
+7. **MEDIOS PROBATORIOS QUE SUSTENTAN LOS HECHOS DESCRITOS** (`mediosProbatorios`): array de strings (cada ítem = un medio: "Informe N.° 001 …, de fecha DD.MM.AAAA", capturas, registros, etc.).
+8. **CONCLUSIÓN PRELIMINAR** (`conclusionPreliminar`): "En ese sentido, usted habría incumplido sus obligaciones laborales … evidenciaría una falta … configurándose un apartamiento de los deberes laborales asumidos …". En condicional.
+9. **PLAZO PARA PRESENTAR DESCARGOS** (`plazoDescargos`): "Por lo expuesto, haciendo uso del poder de dirección … y en pleno respeto de su derecho de defensa, se le otorga un plazo de tres (03) días naturales, contados desde el día siguiente de recibida la presente comunicación, para presentar por escrito los descargos que estime pertinentes respecto de los hechos imputados, acompañando los medios probatorios que considere convenientes. Asimismo, se le precisa que los descargos podrán ser presentados de manera presencial o remitidos a través del correo electrónico de su jefatura inmediata … Vencido el plazo sin que haya presentado descargo alguno, la empresa procederá conforme a las disposiciones internas aplicables … Agradecemos firmar la copia de la presente en señal de haber tomado conocimiento …".
+10. **Atentamente,** (`despedida`) + firma.
 
-Señor,
-{APELLIDOS NOMBRE EN MAYÚSCULAS}
-{cargo}
-
-Asunto: Imputación de incumplimiento de obligaciones
-
-COMPAÑIA MINERA PODEROSA S.A., identificada con RUC Nº 20137025354 y con domicilio para estos efectos en la calle Coronel Gómez Nº 409, Urb. El Molino – Trujillo, Región La Libertad, debidamente representada por su Superintendente de Recursos Humanos, Sr. BENITES REBAZA DANTE ALEX, identificado con DNI Nº 45042266, cumple con hacer de conocimiento que, en su condición de trabajador de PODEROSA, se ha advertido lo siguiente:
-
-{párrafoToma_conocimiento — fecha en que se recibió el informe, número del informe, área que lo elaboró, fecha del hecho, lugar/unidad, breve mención del tipo de irregularidad}
-
-{párrafoHechosAtribuidos — describe lo que el trabajador habría hecho, siempre en condicional: "habría intervenido", "habría consignado", "se habría identificado". Concreto: vales, fechas, cantidades, lugar.}
-
-{párrafoDeteccion — cómo se detectó la situación, contexto adicional, evidencia preservada}
-
-{párrafoObligacionInfringida — cita el PETS específico (código + numeral) o el procedimiento concreto que el trabajador debe conocer y aplicar como parte de sus funciones}
-
-A continuación, {se adjuntan / adjuntan} {los vales / las imágenes / las capturas} observad{os/as}, en los cuales se evidenciaría una inconsistencia en los registros entre {detalle}:
-
-{espacio para imágenes / tabla de vales — el modelo NO inserta imágenes, solo deja el espacio mencionado en el texto}
-
-Los hechos antes descritos constituirían una trasgresión al Reglamento Interno de Trabajo y al Código de Ética y Conducta, en consecuencia, PODEROSA ha considerado que su conducta se encontraría tipificada en:
-
-Reglamento Interno de Trabajo:
-
-"Artículo 3°. - Para efectos de su exigencia y cumplimiento, así como del pleno conocimiento de sus derechos y obligaciones, a cada colaborador se le hará entrega de un ejemplar del RIT (…) comprometiéndose a respetar y cumplir las normas establecidas en este, así como las disposiciones verbales y escritas que de ellas se deriven."
-
-"Artículo 62°.- Son obligaciones de los colaboradores de PODEROSA, cumplir con las siguientes normas:
-3. Cumplir y observar fielmente las normas, directivas, procedimientos Código de Ética y Conducta vigente en la empresa."
-
-"Artículo 63°.- Queda expresamente prohibido a los colaboradores, sujeto a las sanciones previstas en las disposiciones legales y reglamentarias, las siguientes acciones:
-w) Incumplir las normas de carácter legal o internas de PODEROSA que imponen a los colaboradores determinadas conductas y obligaciones, incluyendo los contenidos en este reglamento."
-
-"Artículo 76°.- Será motivo de suspensión por un mínimo de un (1) día y un máximo de seis (6) días, la reiterada comisión de faltas que determinen amonestación; o en su defecto y de acuerdo a la gravedad de la falta, se recurrirá a la suspensión sin necesidad de reiteración. Se deja constancia que esta relación solo tiene carácter enunciativo y no limitativo. Las faltas que darán lugar a suspensiones son, entre otras:
-{inciso aplicable según el caso, p. ej. "v) Proporcionar información inexacta o falsa por cuyos efectos pueda ocasionar perjuicio a la empresa."}"
-
-Código de Ética y Conducta – Cumplimiento organizacional:
-
-"Actuamos de acuerdo con los valores y principios de Poderosa, así como con nuestras responsabilidades profesionales, prestando especial atención a lo establecido en el presente Código y en la normativa externa e interna aplicable."
-
-"6.2. Colaboradores: Cumplimiento organizacional Actuamos de acuerdo con los valores y principios de Poderosa, así como con nuestras responsabilidades profesionales, prestando especial atención a lo establecido en el presente Código y en la normativa externa e interna aplicable."
-
-En ese sentido, se le imputa que usted habría incumplido sus obligaciones laborales, así como las disposiciones internas antes señaladas, al haber {síntesis del hecho atribuido}, lo cual constituiría un incumplimiento del procedimiento interno aplicable.
-
-{párrafoCierreImputacion — la conducta no se condice con los estándares; configura apartamiento de los deberes laborales}
-
-Por lo expuesto, y de conformidad con la normativa interna vigente, usted cuenta con un plazo de tres (03) días naturales para presentar sus descargos respecto a los hechos imputados; caso contrario, se procederá con la resolución del caso correspondiente.
-
-Atentamente,
-
-Anexos:
-
-Anexo 1: {Informe que originó la carta, p.ej. "Informe Log-Mina N.° 03, de fecha 03.05.2026"}
-{Anexo N: anexos adicionales si los hay}
+## Salida — devuelve ÚNICAMENTE este JSON (sin texto fuera)
+```json
+{
+  "asunto": "Imputación de incumplimiento de obligaciones de trabajo",
+  "fecha": "Pataz, 25 de junio de 2026",
+  "numeroCarta": "CARTA N°XXX- RRHH / 2026",
+  "destinatario": { "tratamiento": "Señor:", "nombre": "BENDEZU GUTARRA OMAR", "dni": "70 234 567", "puestoUnidad": "Ingeniero de Cierre de Minas — Unidad Marañón" },
+  "cuerpo": {
+    "referencia": "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO",
+    "encabezado": "De nuestra consideración:",
+    "introduccion": "Mediante la presente carta, que le será notificada, y en atención al artículo 9° del Texto Único Ordenado del Decreto Legislativo N.° 728 …",
+    "hechosDetectados": "Con fecha … mediante el Informe N.° … el área de Recursos Humanos tomó conocimiento de presuntos hechos … usted no habría … configurándose un presunto incumplimiento.",
+    "tipificacion": "Los hechos anteriormente descritos involucrarían … conforme al RIT: \"Artículo 62°.- …\" \"Artículo 63°.- … w) …\" \"Artículo 70°.- …\" … Reglamento Interno de Seguridad y Salud Ocupacional: \"Numeral 8.- …\" Código de Ética y Conducta: \"…\"",
+    "mediosProbatorios": ["Informe N.° 001 – Solicitud de Evaluación de Medida Disciplinaria, de fecha 21.06.2026."],
+    "conclusionPreliminar": "En ese sentido, usted habría incumplido sus obligaciones laborales … evidenciaría una falta de diligencia …",
+    "plazoDescargos": "Por lo expuesto … se le otorga un plazo de tres (03) días naturales … para presentar por escrito los descargos … Agradecemos firmar la copia de la presente …",
+    "despedida": "Atentamente,"
+  },
+  "firma": { "nombre": "BENITES REBAZA DANTE ALEX", "cargo": "Superintendente de Recursos Humanos", "empresa": "Compañía Minera Poderosa S.A." },
+  "anexos": [],
+  "warnings": [],
+  "refused": false,
+  "refusedReason": null
+}
 ```
 
-## Reglas obligatorias para el modelo
-
-1. **Encabezado siempre "Pataz"**, no "Trujillo" (Trujillo es el domicilio legal, no el lugar de emisión).
-2. **CARTA N°** debe seguir el formato exacto `CARTA N°NNN- RRHH / YYYY` (con espacio antes del año).
-3. **Nombre del trabajador en MAYÚSCULAS**, formato `APELLIDOS NOMBRE`.
-4. **Asunto literal**: "Imputación de incumplimiento de obligaciones" (no variar).
-5. **Apertura formal completa** — la primera frase con RUC, domicilio, representante y DNI debe ir tal cual, EXCEPTO si el caso indica otra persona representando a la empresa (poco frecuente).
-6. **Condicional siempre**: "habría", "evidenciaría", "se habría identificado", "constituiría". Nunca afirmar la culpabilidad.
-7. **PETS específico**: si el input lo trae, citar código + numeral. Si no lo trae, dejar `«FALTA: código del PETS y numeral»` y advertir en `warnings[]`.
-8. **Cita literal del RIT**: artículos 3°, 62°, 63°w y 76°. El inciso del 76° depende del tipo de falta:
-   - Información inexacta / falsa → inc. v) "Proporcionar información inexacta o falsa por cuyos efectos pueda ocasionar perjuicio a la empresa."
-   - Otros casos → buscar inciso correspondiente; si no se sabe, citar inc. w) genérico y advertir.
-9. **Plazo siempre 3 (tres) días naturales** salvo que el caso indique otra cosa motivada.
-10. **Cierre**: "Atentamente," sin firma específica (la firma viene en un sello aparte, no en el cuerpo de la carta).
-11. **Anexos numerados**: "Anexo 1: ..." con título completo del documento y fecha en formato `DD.MM.YYYY`.
-
-## Reglas de hidratación al JSON
-
-El modelo debe devolver el JSON con este mapeo de campos:
-
-- `asunto`: SIEMPRE "Imputación de incumplimiento de obligaciones"
-- `fecha`: "Pataz, 07 de mayo del 2026" (incluye ciudad)
-- `numeroCarta`: "CARTA N°073- RRHH / 2026"
-- `destinatario.tratamiento`: "Señor," / "Señora,"
-- `destinatario.nombre`: "CHIROQUE CORDOVA FRANCISCO JAVIER" (mayúsculas)
-- `destinatario.dni`: opcional (las cartas reales no siempre lo muestran)
-- `destinatario.puestoUnidad`: "Auxiliar de Almacén" (solo el cargo)
-- `cuerpo.encabezado`: "" (en este formato no hay "De nuestra consideración:")
-- `cuerpo.introduccion`: el párrafo de apertura formal con datos de la empresa
-- `cuerpo.hechosImputados`: 3-4 párrafos consecutivos describiendo los hechos, detección, obligación infringida (citar PETS), y referencia a los anexos. Separados por `\n\n`.
-- `cuerpo.normaAplicable`: el bloque completo con citas literales del RIT y Código de Ética. Separar artículos con `\n\n`.
-- `cuerpo.derechoDefensa`: "Por lo expuesto, y de conformidad con la normativa interna vigente, usted cuenta con un plazo de tres (03) días naturales para presentar sus descargos respecto a los hechos imputados; caso contrario, se procederá con la resolución del caso correspondiente."
-- `cuerpo.canalDescargo`: "" (no se especifica canal en estas cartas; el cierre genérico lo cubre)
-- `cuerpo.cierreNoSancion`: "" (el formato no incluye esta cláusula)
-- `cuerpo.despedida`: "Atentamente,"
-- `firma.nombre`: "" (en este formato no se firma con nombre en el cuerpo)
-- `firma.cargo`: ""
-- `firma.empresa`: "Compañía Minera Poderosa S.A."
-- `anexos`: array de strings tipo `["Anexo 1: Informe Log-Mina N.° 03, de fecha 03.05.2026"]`
+## Reglas
+- **Condicional siempre** (es imputación, no decisión): "habría", "configurarían", "no habría", "evidenciaría". Nunca afirmar culpabilidad.
+- **Sustento exclusivo + RIT primero**: las citas de `tipificacion` provienen SOLO de la "Base normativa de Poderosa" inyectada; prioriza el **RIT** (la mayoría de citas deben ser artículos del RIT). Si falta sustento, `warnings[]`.
+- **Plazo**: tres (03) días naturales por defecto (práctica de Poderosa + precedente TFL 568-2021). Solo 6 días si es preaviso de despido (Art. 31 D.L. 728).
+- `mediosProbatorios` lista al menos el informe de origen.
