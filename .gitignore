@@ -7,3 +7,5 @@
 **/*.log
 server/data/templates/
 server/data/templates.json
+# Directorio de empleados con correos reales — NUNCA commitear a repo público
+server/data/organigrama.json

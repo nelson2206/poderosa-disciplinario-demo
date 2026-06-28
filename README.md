@@ -2,7 +2,7 @@
 
 Demo del Sistema de Gestión Disciplinaria — Compañía Minera Poderosa S.A.
 
-Originalmente un `index.html` autónomo; ahora con un **backend Node.js/TypeScript** que redacta borradores de **Carta 1 (Imputación)** con **Claude** (Anthropic API), conforme al TUO del D.L. N° 728, RIT y criterios SUNAFIL.
+Originalmente un `index.html` autónomo; ahora con un **backend Node.js/TypeScript** que redacta borradores de **Carta 1 (Imputación)** con **ChatGPT** (API de OpenAI, modelo `gpt-5`), conforme al TUO del D.L. N° 728, RIT y criterios SUNAFIL.
 
 > **Demo de ingeniería.** Los borradores los redacta un modelo y deben pasar siempre por revisión humana de RR.HH. y validación final de Legal antes de notificarse.
 
@@ -24,7 +24,7 @@ poderosa-disciplinario-demo/
     ├── data/               (gitignored) almacén filesystem (backend fs)
     └── src/
         ├── index.ts        Express + endpoints REST
-        ├── agent.ts        Cliente Anthropic + inyección de plantilla cliente
+        ├── agent.ts        Cliente OpenAI + inyección de plantilla cliente
         ├── prompts/
         │   ├── system.md   System prompt (reglas obligatorias, formato JSON)
         │   └── carta1.md   Plantilla canónica mínima de Carta 1
@@ -100,14 +100,14 @@ Todo esto vive en `server/CLAUDE.md` — el system prompt lo respeta y `warnings
 ## Requisitos
 
 - Node.js 20+
-- Una API key de Anthropic (`https://console.anthropic.com`)
+- Una API key de OpenAI (`https://platform.openai.com/api-keys`)
 
 ## Puesta en marcha
 
 ```powershell
 cd server
 copy .env.example .env
-# Edita .env y pon tu ANTHROPIC_API_KEY real
+# Edita .env y pon tu OPENAI_API_KEY real
 npm install
 npm run dev
 ```
@@ -118,7 +118,7 @@ Esto arranca el servidor en `http://localhost:8787` y **sirve también `index.ht
 http://localhost:8787/
 ```
 
-Ve a **Generar Carta 1** en el sidebar, edita los campos del formulario (o deja la descripción libre del incidente como ejemplo), y pulsa **✨ Redactar con IA**. El preview de la carta se rehidrata con la redacción de Claude. Las advertencias del modelo aparecen en el panel naranja.
+Ve a **Generar Carta 1** en el sidebar, edita los campos del formulario (o deja la descripción libre del incidente como ejemplo), y pulsa **✨ Redactar con IA**. El preview de la carta se rehidrata con la redacción de ChatGPT. Las advertencias del modelo aparecen en el panel naranja.
 
 ### Endpoints
 
@@ -195,7 +195,7 @@ El Express del backend ya sirve `index.html` como estático (`STATIC_DIR=..`), a
 1. Push del repo a GitHub.
 2. Crea cuenta en [render.com](https://render.com) (login con GitHub).
 3. **New → Blueprint → conecta el repo `poderosa-disciplinario-demo`.** Render detecta `render.yaml` automáticamente.
-4. Te pedirá el valor de `ANTHROPIC_API_KEY` (está marcada `sync: false` precisamente para no commitearla). Pega tu clave de [console.anthropic.com](https://console.anthropic.com).
+4. Te pedirá el valor de `OPENAI_API_KEY` (está marcada `sync: false` precisamente para no commitearla). Pega tu clave de [platform.openai.com](https://platform.openai.com/api-keys).
 5. **Apply.** Render compila (`cd server && npm ci && npm run build`) y arranca (`npm start`).
 6. Cuando el deploy termine: la URL es algo como `https://poderosa-disciplinario.onrender.com`.
 7. Verifica `https://poderosa-disciplinario.onrender.com/api/health` → debe responder `"hasKey":true`.
@@ -225,13 +225,14 @@ El Express del backend ya sirve `index.html` como estático (`STATIC_DIR=..`), a
 - [ ] Carta 2 — Amonestación / Suspensión / Despido, tras descargo evaluado
 - [ ] Acta de notificación + Desistimiento + Levantamiento
 - [ ] Flujo de falta flagrante (sin proceso previo)
-- [ ] **MCP connectors** sobre **Claude Agent SDK**: jurisprudencia (vLex/CourtListener), DMS interno, firma electrónica
+- [ ] **Tool calling / conectores** sobre el SDK de OpenAI: jurisprudencia (vLex/CourtListener), DMS interno, firma electrónica
 - [ ] Integración con el módulo "Reportes SUNAFIL"
 - [ ] Versionado de plantillas (historial, diff entre versiones)
 - [ ] Política de retención + auditoría de quién subió cada plantilla
 
 ## Notas técnicas
 
-- Esta primera iteración usa `@anthropic-ai/sdk` directo. El paso siguiente es migrar a `@anthropic-ai/claude-agent-sdk` cuando incorporemos herramientas/MCP (búsqueda en jurisprudencia, lookup del catálogo de faltas vía BD, etc.). La función `generateCarta1()` está pensada para encapsular ese cambio sin tocar el resto.
-- Modelo por defecto: `claude-sonnet-4-6`. Override vía `ANTHROPIC_MODEL` en `.env`.
+- Esta iteración usa el SDK oficial `openai` (Chat Completions) directo, pidiendo salida en JSON estricto (`response_format: json_object`). El paso siguiente es incorporar *tool calling* (búsqueda en jurisprudencia, lookup del catálogo de faltas vía BD, etc.). La función `generateCarta1()` está pensada para encapsular ese cambio sin tocar el resto.
+- Modelo por defecto: `gpt-5` (modelo de razonamiento, el mejor para la redacción jurídica). Override vía `OPENAI_MODEL` en `.env`. Para clasificación/visión puedes delegar a `gpt-5-mini` / `gpt-4o` con los overrides por endpoint.
+- La caché de prompt es **automática** en OpenAI: los prefijos estables (system + plantilla + few-shots) se sirven de caché sin marcadores; basta con mantener la parte variable (el caso) al final del prompt.
 - CORS abierto por defecto (`ALLOW_ORIGIN=*`) para facilitar abrir `index.html` directamente. En producción, restringir.
