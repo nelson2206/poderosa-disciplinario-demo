@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 // override: true es importante — si el shell padre tiene una env var vacía
-// (p.ej. ANTHROPIC_API_KEY=""), el .env del proyecto debe ganar.
+// (p.ej. OPENAI_API_KEY=""), el .env del proyecto debe ganar.
 dotenv.config({ override: true });
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
@@ -11,7 +11,8 @@ import { promises as fs } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
-import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, MODEL_CONFIG, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
+import { generateCarta1, generateCarta2, extractTrabajadorFromImage, classifyIncidente, analizarInforme, MODEL_CONFIG, type Carta1Input, type Carta2Input, type Carta2Tipo, type ClasificacionInput } from "./agent.js";
+import { extractTextFromBuffer } from "./extract-text.js";
 import {
   getStorage,
   getStorageKind,
@@ -21,11 +22,27 @@ import {
   type CartaTipo,
   type TemplateType,
 } from "./storage/index.js";
+import { buscarOrganigrama, organigramaInfo } from "./organigrama.js";
+import { buscarNormativa, normativaInfo } from "./normativa.js";
+import nodemailer from "nodemailer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 8787;
 const ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || "*";
 const STATIC_DIR = resolve(__dirname, "..", process.env.STATIC_DIR || "..");
+
+// ============================================================================
+// Correo (SMTP) — opcional. El envío directo desde la herramienta sólo se
+// habilita si SMTP_HOST + SMTP_USER están configurados. Sin ellos, el frontend
+// usa el camino "borrador de Outlook" (.eml) y este endpoint devuelve 503.
+// ============================================================================
+const SMTP_HOST = process.env.SMTP_HOST || "";
+const SMTP_USER = process.env.SMTP_USER || "";
+const SMTP_PASS = process.env.SMTP_PASS || "";
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
+const SMTP_SECURE = process.env.SMTP_SECURE === "1" || process.env.SMTP_SECURE === "true";
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const EMAIL_CONFIGURED = Boolean(SMTP_HOST && SMTP_USER);
 
 const ALLOWED_MIME = new Set([
   "application/pdf",
@@ -83,7 +100,7 @@ function requireToken(req: Request, res: Response, next: NextFunction) {
   res.status(401).json({ error: "Token inválido. Pega el código de acceso de Poderosa." });
 }
 
-// Rate limit en endpoints de generación (Anthropic cuesta dinero)
+// Rate limit en endpoints de generación (la API de OpenAI cuesta dinero)
 const generateLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 15,
@@ -105,14 +122,21 @@ app.use("/api", apiLimiter);
 // ============================================================================
 // /api/health: público (para uptime checks)
 // ============================================================================
-app.get("/api/health", (_req, res) => {
+app.get("/api/health", async (_req, res) => {
+  let organigrama = { total: 0, fuente: "vacío" };
+  let normativa = { total: 0, fuente: "vacío" };
+  try { organigrama = await organigramaInfo(); } catch { /* no crítico */ }
+  try { normativa = await normativaInfo(); } catch { /* no crítico */ }
   res.json({
     ok: true,
     model: MODEL_CONFIG.default,
     models: MODEL_CONFIG,
-    hasKey: Boolean(process.env.ANTHROPIC_API_KEY),
+    hasKey: Boolean(process.env.OPENAI_API_KEY),
     storage: getStorageKind(),
     authEnabled: !AUTH_DISABLED,
+    emailConfigured: EMAIL_CONFIGURED,
+    organigrama,
+    normativa,
     templateTypes: TEMPLATE_TYPES,
   });
 });
@@ -125,14 +149,98 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/templates", requireToken);
 app.use("/api/cartas", requireToken);
 app.use("/api/colaboradores", requireToken);
+app.use("/api/organigrama", requireToken);
+app.use("/api/correos", requireToken);
 
 // ============================================================================
-// Colaboradores — extracción de datos desde imagen (Claude Vision)
+// Organigrama — resuelve el jefe directo (y su correo) a partir del nombre
+// del trabajador. Datos en bucket privado Supabase (o JSON local en dev).
+// ============================================================================
+app.get("/api/organigrama/buscar", async (req, res) => {
+  try {
+    const q = typeof req.query.q === "string" ? req.query.q : "";
+    if (q.trim().length < 2) return res.status(400).json({ error: "Parámetro 'q' requerido (mínimo 2 caracteres)" });
+    const limit = req.query.limit ? Math.min(20, Math.max(1, Number(req.query.limit))) : 8;
+    const resultados = await buscarOrganigrama(q, limit);
+    res.json({ resultados });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ============================================================================
+// Correos — envío directo de la carta al jefe (vía SMTP). Sólo si está
+// configurado; si no, el frontend usa el borrador de Outlook (.eml).
+// ============================================================================
+type AdjuntoCorreo = { filename: string; contentBase64: string; contentType?: string };
+
+app.post("/api/correos/enviar", generateLimiter, async (req, res) => {
+  if (!EMAIL_CONFIGURED) {
+    return res.status(503).json({
+      error: "Envío directo no configurado. Define SMTP_HOST y SMTP_USER (y SMTP_PASS) en el servidor, o usa el borrador de Outlook.",
+    });
+  }
+  try {
+    const b = (req.body || {}) as {
+      cartaId?: string;
+      to?: string;
+      cc?: string;
+      subject?: string;
+      html?: string;
+      text?: string;
+      attachments?: AdjuntoCorreo[];
+    };
+    if (!b.to || !/.+@.+\..+/.test(b.to)) return res.status(400).json({ error: "Destinatario 'to' inválido" });
+    if (!b.subject || !b.subject.trim()) return res.status(400).json({ error: "Falta 'subject'" });
+    if (!b.html && !b.text) return res.status(400).json({ error: "Falta el cuerpo del correo (html o text)" });
+
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+
+    const attachments = (Array.isArray(b.attachments) ? b.attachments : []).map((a) => ({
+      filename: a.filename || "carta.pdf",
+      content: Buffer.from(a.contentBase64, "base64"),
+      contentType: a.contentType || "application/pdf",
+    }));
+
+    const info = await transporter.sendMail({
+      from: SMTP_FROM,
+      to: b.to,
+      cc: b.cc || undefined,
+      subject: b.subject,
+      text: b.text || undefined,
+      html: b.html || undefined,
+      attachments,
+    });
+
+    // Si la carta está persistida, marcarla como notificada.
+    if (b.cartaId) {
+      try {
+        const s = await getStorage();
+        await s.cartas.updateEstado(b.cartaId, "notificada" as CartaEstado);
+      } catch (e) {
+        console.warn("[/api/correos/enviar] no se pudo actualizar estado:", (e as Error).message);
+      }
+    }
+
+    res.json({ ok: true, messageId: info.messageId, accepted: info.accepted });
+  } catch (err) {
+    console.error("[/api/correos/enviar] error:", (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ============================================================================
+// Colaboradores — extracción de datos desde imagen (OpenAI Vision · GPT-4o)
 // ============================================================================
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 6 * 1024 * 1024 }, // 6 MB — Claude vision suele bajar de eso al base64
+  limits: { fileSize: 6 * 1024 * 1024 }, // 6 MB — la visión de OpenAI suele bajar de eso al base64
   fileFilter: (_req, file, cb) => {
     if (["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.mimetype)) cb(null, true);
     else cb(new Error(`Tipo no soportado: ${file.mimetype}. Permitidos: PNG, JPEG, WEBP, GIF.`));
@@ -149,6 +257,56 @@ app.post("/api/colaboradores/extraer", generateLimiter, imageUpload.single("imag
     res.json({ trabajador: output, elapsedMs: Date.now() - t0, usage });
   } catch (err) {
     console.error("[/api/colaboradores/extraer] error:", (err as Error).message);
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ============================================================================
+// Cartas — análisis de informe / hilo de correos → campos + normas propuestas
+// Acepta texto pegado (JSON { texto }) o un archivo (PDF/DOCX/TXT/MD/HTML/EML).
+// ============================================================================
+
+const ANALISIS_EXT = new Set([".pdf", ".docx", ".txt", ".md", ".html", ".htm", ".eml"]);
+const informeUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = (file.originalname.match(/\.[^.]+$/) || [""])[0].toLowerCase();
+    if (ANALISIS_EXT.has(ext) || ALLOWED_MIME.has(file.mimetype)) cb(null, true);
+    else cb(new Error(`Tipo no soportado: ${file.originalname}. Permitidos: ${[...ANALISIS_EXT].join(", ")} o pega el texto.`));
+  },
+});
+
+// Extrae texto plano de un archivo (PDF/DOCX/TXT/EML) — lo usa el adjunto de
+// "procedimiento correcto" y cualquier flujo que necesite texto de un archivo.
+app.post("/api/extraer-texto", requireToken, informeUpload.single("archivo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Falta el archivo (campo 'archivo')" });
+    const texto = (await extractTextFromBuffer(req.file.buffer, req.file.mimetype, req.file.originalname)).trim();
+    res.json({ texto, chars: texto.length, filename: req.file.originalname });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post("/api/cartas/analizar-informe", generateLimiter, informeUpload.single("archivo"), async (req, res) => {
+  try {
+    let texto = "";
+    if (req.file) {
+      texto = await extractTextFromBuffer(req.file.buffer, req.file.mimetype, req.file.originalname);
+    } else if (typeof req.body?.texto === "string") {
+      texto = req.body.texto;
+    }
+    texto = (texto || "").trim();
+    if (texto.length < 30) {
+      return res.status(400).json({ error: "Pega el texto del informe / hilo de correos (mínimo 30 caracteres) o sube un archivo legible." });
+    }
+    const t0 = Date.now();
+    const normativa = await buscarNormativa(texto.slice(0, 4000), 8).catch(() => []);
+    const { output, usage } = await analizarInforme(texto, { normativa });
+    res.json({ analisis: output, elapsedMs: Date.now() - t0, usage });
+  } catch (err) {
+    console.error("[/api/cartas/analizar-informe] error:", (err as Error).message);
     res.status(500).json({ error: (err as Error).message });
   }
 });
@@ -311,7 +469,9 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
         outputJson: c.finalEditedOutput ?? c.outputJson,
       }));
 
-    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
+    // Sustento: recupera los extractos relevantes de los reglamentos de Poderosa (RAG estricto).
+    const normativa = await buscarNormativa(`${v.input.faltaTipificada || ""}. ${v.input.conducta || ""}`, 8).catch(() => []);
+    const { output: carta, usage } = await generateCarta1(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({
@@ -335,6 +495,13 @@ app.post("/api/cartas/generate", generateLimiter, async (req, res) => {
   } catch (err) {
     const msg = (err as Error).message;
     console.error("[/api/cartas/generate] error:", msg);
+    let cause = (err as Error & { cause?: any }).cause;
+    let depth = 0;
+    while (cause && depth < 5) {
+      console.error(`  └ cause[${depth}]:`, cause.code || cause.name || "", "-", cause.message);
+      cause = cause.cause;
+      depth++;
+    }
     res.status(500).json({ error: msg });
   }
 });
@@ -389,7 +556,8 @@ app.post("/api/cartas/generate-carta2", generateLimiter, async (req, res) => {
         outputJson: c.finalEditedOutput ?? c.outputJson,
       }));
 
-    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary });
+    const normativa = await buscarNormativa(`${v.input.hechosImputados || ""}. ${v.input.evaluacion || ""}`, 8).catch(() => []);
+    const { output: carta, usage } = await generateCarta2(v.input, { plantillaClienteTexto, plantillaClienteLabel, exemplary, normativa });
     const elapsedMs = Date.now() - t0;
 
     const persisted = await s.cartas.create({
@@ -523,5 +691,5 @@ app.listen(PORT, async () => {
   console.log(`[poderosa-server] escuchando en http://localhost:${PORT}`);
   console.log(`[poderosa-server] storage backend: ${getStorageKind()}`);
   console.log(`[poderosa-server] sirviendo estáticos desde ${STATIC_DIR}`);
-  if (!process.env.ANTHROPIC_API_KEY) console.warn("[poderosa-server] ANTHROPIC_API_KEY no está configurada — /api/cartas/generate fallará");
+  if (!process.env.OPENAI_API_KEY) console.warn("[poderosa-server] OPENAI_API_KEY no está configurada — /api/cartas/generate fallará");
 });

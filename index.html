@@ -761,7 +761,7 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
     <!-- Subsección: Elaboración de cartas (compartida entre rrhh y modo "cartas") -->
     <div class="nav-section nav-grp" data-role="rrhh cartas" style="padding-top:14px;font-size:9px;color:var(--gray-muted);">📝 Elaboración de cartas</div>
     <nav class="nav nav-grp" data-role="rrhh cartas">
-      <button class="nav-item" data-action="goto" data-view="nueva-carta" style="background:var(--gold-pale);color:var(--teal-dark);font-weight:600;"><span class="nav-ico" style="color:var(--gold);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></span>✨ Nueva carta con IA</button>
+      <button class="nav-item" data-action="goto" data-view="nueva-carta" style="background:var(--gold-pale);color:var(--teal-dark);font-weight:600;"><span class="nav-ico" style="color:var(--gold);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></span>✨ Nueva carta (Imputación)</button>
       <button class="nav-item" data-action="goto" data-view="plantillas"><span class="nav-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M16 3v5h5M8 13h8M8 17h5"/></svg></span>Plantillas</button>
     </nav>
 
@@ -852,11 +852,11 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M9 13l2 2 4-4"/></svg>
             </div>
             <div>
-              <div style="font-family:var(--font-head);font-size:11px;letter-spacing:2px;color:var(--gold-light);text-transform:uppercase;margin-bottom:6px;">✨ Generador con IA · Claude</div>
+              <div style="font-family:var(--font-head);font-size:11px;letter-spacing:2px;color:var(--gold-light);text-transform:uppercase;margin-bottom:6px;">✨ Generador con IA · ChatGPT</div>
               <h2 style="margin:0 0 8px;font-family:var(--font-head);font-size:26px;letter-spacing:-.3px;color:var(--white);">Generador de cartas disciplinarias</h2>
               <p style="margin:0;color:var(--gold-light);font-size:14px;line-height:1.5;">Entra directo a redactar Cartas 1 y 2 con IA, gestionar plantillas validadas por Legal y revisar el historial — sin el flujo completo de casos.</p>
               <ul style="margin:10px 0 0;padding-left:18px;color:var(--white);font-size:12.5px;line-height:1.7;opacity:.92;">
-                <li>Carta 1 (Imputación) + Carta 2 (Amonestación / Suspensión / Despido / Desistimiento)</li>
+                <li>2 tipos: <strong>Imputación de falta</strong> + <strong>Carta de decisión final</strong> (amonestación · suspensión X días · despido · archivo)</li>
                 <li>Biblioteca de plantillas Legal (.docx, .pdf, .txt) con extracción automática</li>
                 <li>Historial trazable para SUNAFIL — borrador → revisada → notificada</li>
               </ul>
@@ -1530,7 +1530,7 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
 
       <!-- ===== VIEW: GENERADOR CARTA 2 ===== -->
       <section class="view" id="view-carta2">
-        <div class="greeting"><h1>Generador de Carta 2 — Sanción / Desistimiento</h1><p>Caso <strong style="color:var(--gold)">CD-2026-047</strong> · Sanción propuesta por RR.HH., pendiente de aprobación del Superintendente.</p></div>
+        <div class="greeting"><h1>Generador de Carta de decisión final</h1><p>Caso <strong style="color:var(--gold)">CD-2026-047</strong> · Decisión propuesta por RR.HH., pendiente de aprobación del Superintendente.</p></div>
 
         <div class="carta-grid">
           <div class="form-card">
@@ -1544,8 +1544,12 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
                 <option>Amonestación escrita</option>
                 <option>Suspensión sin goce de haber</option>
                 <option>Despido</option>
-                <option>Desistimiento del procedimiento</option>
+                <option>Archivo del procedimiento (sin sanción)</option>
               </select>
+            </div>
+            <div class="field" id="c2-dias-wrap" style="display:none;"><label for="c2-dias">Días de suspensión</label>
+              <input id="c2-dias" type="number" min="1" max="30" value="3" style="width:120px;">
+              <div style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Número de días sin goce de haber (precedente TFL 568-2021 — proporcionalidad).</div>
             </div>
 
             <div class="field"><label for="c2-detalle">Detalle de la sanción</label>
@@ -1682,19 +1686,35 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
       <!-- ===== VIEW: NUEVA CARTA (wizard 4 pasos) ===== -->
       <section class="view" id="view-nueva-carta">
         <div class="greeting">
-          <h1>✨ Nueva carta disciplinaria</h1>
-          <p>3 pasos: <strong>1.</strong> datos del colaborador (foto del DNI o manual) · <strong>2.</strong> incidente + evidencias del informe · <strong>3.</strong> editar y exportar PDF/Word. Formato único Poderosa.</p>
+          <h1>✨ Nueva carta — Imputación de falta</h1>
+          <p>3 pasos: <strong>1.</strong> datos del colaborador (foto del DNI o manual) + jefe directo · <strong>2.</strong> incidente + evidencias del informe · <strong>3.</strong> editar, aprobar y enviar la carta al jefe. Formato único Poderosa.</p>
         </div>
 
         <!-- Stepper -->
         <div id="nc-stepper" style="display:flex;gap:8px;margin:18px 0 22px;">
           <div class="nc-step active" data-step="1" style="flex:1;background:var(--teal);color:var(--white);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gold);color:var(--teal-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">1</span><span><strong>Colaborador</strong><br><span style="opacity:.85;font-size:10.5px;">Datos identificatorios</span></span></div>
           <div class="nc-step" data-step="2" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">2</span><span><strong>Incidente</strong><br><span style="font-size:10.5px;">Descripción + evidencias</span></span></div>
-          <div class="nc-step" data-step="3" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">3</span><span><strong>Editar y exportar</strong><br><span style="font-size:10.5px;">PDF / Word</span></span></div>
+          <div class="nc-step" data-step="3" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">3</span><span><strong>Editar y enviar</strong><br><span style="font-size:10.5px;">Aprobar · correo al jefe</span></span></div>
         </div>
 
         <!-- ===== Paso 1: Colaborador ===== -->
         <div class="nc-pane" data-step-pane="1" style="display:block;">
+          <!-- Punto de partida: informe / hilo de correos → la IA extrae todo -->
+          <div class="card" style="margin-bottom:14px;border:1px solid var(--gold);">
+            <div class="card-header"><h2>Punto de partida · Informe o hilo de correos</h2></div>
+            <div style="padding:18px 20px;">
+              <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Pega el <strong>informe del incidente</strong> o el <strong>hilo de correos</strong>, o sube el archivo. La IA extrae los datos del trabajador y del incidente, y te propone las <strong>normas / cláusulas a citar</strong> — las revisas antes de generar la medida.</div>
+              <textarea id="nc-informe-texto" rows="6" placeholder="Pega aquí el informe o el hilo de correos…" style="width:100%;font-size:12.5px;"></textarea>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;">
+                <label for="nc-informe-file" class="btn" style="font-size:12px;cursor:pointer;">📎 …o subir archivo (PDF · Word · TXT · EML)</label>
+                <input type="file" id="nc-informe-file" accept=".pdf,.docx,.txt,.md,.html,.htm,.eml" style="display:none;">
+                <span id="nc-informe-filename" style="font-size:11.5px;color:var(--gray-muted);"></span>
+                <button class="btn primary" id="nc-analizar-btn" style="background:var(--gold);font-size:13px;margin-left:auto;">✨ Analizar y extraer campos</button>
+              </div>
+              <div id="nc-analizar-status" style="margin-top:8px;font-size:11.5px;color:var(--gray-muted);min-height:16px;"></div>
+              <div id="nc-analisis-resumen" style="display:none;margin-top:12px;"></div>
+            </div>
+          </div>
           <div class="card">
             <div class="card-header"><h2>Datos del colaborador</h2></div>
             <div style="padding:18px 20px;">
@@ -1728,6 +1748,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
                   <div id="nc-trab-notas" style="display:none;margin-top:8px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
                 </div>
               </div>
+              <!-- Jefe directo (resuelto desde el organigrama) -->
+              <div id="nc-jefe-block" style="display:none;margin-top:16px;padding:13px 15px;background:#EEF5F7;border:1px solid var(--teal);border-radius:9px;"></div>
             </div>
           </div>
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
@@ -1769,6 +1791,20 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               </label>
               <input type="file" id="nc-evid-files" accept="image/*" multiple style="display:none;">
               <div id="nc-evid-list" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
+            </div>
+          </div>
+
+          <!-- ¿Cómo debió ejecutarse la labor? (contexto opcional) -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-header"><h2>📘 ¿Cómo debió ejecutarse la labor? <span style="font-weight:400;font-size:12px;color:var(--gray-muted);">(opcional · contexto)</span></h2></div>
+            <div style="padding:18px 20px;">
+              <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Pega o sube el <strong>procedimiento / manual / proceso</strong> de cómo debía hacerse la labor. La IA lo usa como contexto para describir con precisión qué hizo mal el colaborador. <strong>No</strong> es el sustento legal (ese sale exclusivamente de los reglamentos de Poderosa).</div>
+              <textarea id="nc-proc-texto" rows="5" placeholder="Pega aquí el procedimiento correcto, o sube el archivo…" style="width:100%;font-size:12.5px;"></textarea>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                <label for="nc-proc-file" class="btn" style="font-size:12px;cursor:pointer;">📎 Subir procedimiento (PDF · Word · TXT)</label>
+                <input type="file" id="nc-proc-file" accept=".pdf,.docx,.txt,.md,.html,.htm" style="display:none;">
+                <span id="nc-proc-status" style="font-size:11.5px;color:var(--gray-muted);"></span>
+              </div>
             </div>
           </div>
 
@@ -1820,6 +1856,16 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <input type="text" id="nc-feedback-text" placeholder="Comentario opcional: ¿qué editaste o falló?" style="flex:1;min-width:240px;padding:6px 10px;font-size:12px;border:1px solid var(--gray-line);border-radius:6px;">
             </div>
             <div id="nc-feedback-status" style="margin-top:6px;font-size:11px;color:var(--gray-muted);min-height:14px;"></div>
+          </div>
+
+          <!-- ===== Envío al jefe directo ===== -->
+          <div style="margin-top:14px;padding:14px 16px;background:#F1F7F2;border:1px solid #2E8B57;border-radius:8px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="font-family:var(--font-head);font-size:11px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;">Paso final · Envío al jefe directo</div>
+              <button class="btn primary" id="nc-aprobar-btn" style="background:#2E8B57;font-size:13px;">✓ Aprobar cambios y preparar envío</button>
+              <span id="nc-aprobar-status" style="font-size:11.5px;color:var(--gray-muted);"></span>
+            </div>
+            <div id="nc-correo-panel" style="display:none;margin-top:12px;"></div>
           </div>
 
           <div style="display:flex;justify-content:space-between;gap:8px;margin-top:14px;">
@@ -2371,7 +2417,7 @@ const userMapEarly = {
   super:  { av: "CR", name: "Carlos Ramírez",  role: "Superintendente · Marañón", avClass: "" },
   rrhh:   { av: "MS", name: "María Salas",      role: "Jefa RR.HH. · Marañón",      avClass: "rrhh" },
   work:   { av: "JP", name: "Juan Pérez R.",    role: "Op. flotación · Marañón",   avClass: "work" },
-  cartas: { av: "IA", name: "Generador IA",     role: "Modo cartas · Claude",       avClass: "rrhh" },
+  cartas: { av: "IA", name: "Generador IA",     role: "Modo cartas · ChatGPT",      avClass: "rrhh" },
 };
 const userMap = userMapEarly;
 const defaultByRole = { super: "dashboard", rrhh: "seguimiento", work: "login", cartas: "nueva-carta" };
@@ -2650,7 +2696,7 @@ async function generateCartaWithAI() {
   btn.disabled = true;
   const originalLabel = btn.textContent;
   btn.textContent = "⏳ Redactando…";
-  setAIStatus("Llamando a Claude para redactar la Carta 1…");
+  setAIStatus("Llamando a ChatGPT para redactar la Carta 1…");
   showAIWarnings([]);
   try {
     const input = gatherCarta1Input();
@@ -2687,13 +2733,13 @@ const C2_TIPO_TO_KEY = {
   "Amonestación escrita": "carta2-amonestacion",
   "Suspensión sin goce de haber": "carta2-suspension",
   "Despido": "carta2-despido",
-  "Desistimiento del procedimiento": "desistimiento"
+  "Archivo del procedimiento (sin sanción)": "desistimiento"
 };
 const C2_TIPO_LEGIBLE = {
   "carta2-amonestacion": "Amonestación escrita",
   "carta2-suspension": "Suspensión sin goce de haberes",
   "carta2-despido": "Despido",
-  "desistimiento": "Desistimiento del procedimiento"
+  "desistimiento": "Archivo del procedimiento (sin sanción)"
 };
 
 function setC2Status(msg, kind) {
@@ -2774,7 +2820,8 @@ function gatherCarta2Input() {
   };
 
   if (tipo === "carta2-suspension") {
-    input.suspension = { dias: 3, inicioISO: "2026-05-08", finISO: "2026-05-10", retornoISO: "2026-05-11" };
+    const dias = Math.max(1, Number((document.getElementById("c2-dias") || {}).value) || 3);
+    input.suspension = { dias, inicioISO: "2026-05-08", finISO: "2026-05-10", retornoISO: "2026-05-11" };
   } else if (tipo === "carta2-despido") {
     input.despido = { causalArt25: "Art. 25 inc. a) D.L. 728", fechaCeseISO: "2026-05-08" };
   } else if (tipo === "carta2-amonestacion") {
@@ -2789,7 +2836,7 @@ async function generateCarta2WithAI() {
   btn.disabled = true;
   const originalLabel = btn.textContent;
   btn.textContent = "⏳ Redactando…";
-  setC2Status("Llamando a Claude para redactar la Carta 2…");
+  setC2Status("Llamando a ChatGPT para redactar la Carta 2…");
   showC2Warnings([]);
   try {
     const input = gatherCarta2Input();
@@ -2835,6 +2882,10 @@ if (c2TipoSelect && c2TemplateSelect) {
     }
   });
 }
+// Muestra el campo "días de suspensión" solo cuando la decisión es Suspensión.
+const c2DiasWrap = document.getElementById("c2-dias-wrap");
+function c2ToggleDias(){ if (c2DiasWrap && c2TipoSelect) c2DiasWrap.style.display = (C2_TIPO_TO_KEY[c2TipoSelect.value] === "carta2-suspension") ? "block" : "none"; }
+if (c2TipoSelect) { c2TipoSelect.addEventListener("change", c2ToggleDias); c2ToggleDias(); }
 
 // ====== Biblioteca de plantillas ======
 const TEMPLATE_TYPE_LABELS = {
@@ -3789,7 +3840,7 @@ async function ncExtraer() {
   const orig = ncExtraerBtn.textContent;
   ncExtraerBtn.textContent = "⏳ Analizando con IA…";
   status.style.color = "var(--gray-muted)";
-  status.textContent = "Claude está leyendo la imagen…";
+  status.textContent = "ChatGPT está leyendo la imagen…";
   try {
     const fd = new FormData();
     fd.append("imagen", ncFotoFile);
@@ -3810,6 +3861,7 @@ async function ncExtraer() {
     }
     status.style.color = "var(--green)";
     status.textContent = `✓ Datos extraídos en ${data.elapsedMs} ms · confianza: ${t.confianza}. Revisa y corrige si hace falta.`;
+    window.ncLookupJefe && window.ncLookupJefe();
   } catch (err) {
     status.style.color = "var(--terracotta)";
     status.textContent = `Error: ${err.message}`;
@@ -3843,7 +3895,8 @@ function ncGatherIncidente() {
     petsNombre: (document.getElementById("nc-pets-nombre")?.value || "").trim(),
     petsNumerales: (document.getElementById("nc-pets-numerales")?.value || "").trim(),
     numeroCarta: (document.getElementById("nc-num-carta")?.value || "").trim(),
-    fechaEmisionISO: document.getElementById("nc-fecha-emision")?.value || ""
+    fechaEmisionISO: document.getElementById("nc-fecha-emision")?.value || "",
+    procedimientoCorrecto: (document.getElementById("nc-proc-texto")?.value || "").trim()
   };
 }
 
@@ -3861,7 +3914,7 @@ async function ncGenerar() {
   const btn = document.getElementById("nc-generar-btn");
   const status = document.getElementById("nc-generar-status");
   ncGatherIncidente();
-  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Redactando con Claude (30-40s)…";
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Redactando con ChatGPT (30-40s)…";
   status.style.color = "var(--gray-muted)";
   status.textContent = "Generando carta con formato Poderosa…";
 
@@ -3882,8 +3935,8 @@ async function ncGenerar() {
     const body = {
       caseId,
       trabajador: trabPayload,
-      faltaTipificada: "Incumplimiento de obligaciones",
-      normaAplicable: "RIT Arts. 3°, 62°, 63°w, 76° + Código de Ética",
+      faltaTipificada: ncState.analisis?.faltaTipificada || "Incumplimiento de obligaciones",
+      normaAplicable: (ncState.analisis?.normasPropuestas?.length ? ncState.analisis.normasPropuestas.map(n => n.norma).join(" · ") : "RIT Arts. 3°, 62°, 63°w, 76° + Código de Ética"),
       conducta: inf.conducta || "",
       fechaHechoISO: inf.fechaHechoISO || new Date().toISOString(),
       lugar: inf.lugar || "",
@@ -3901,7 +3954,8 @@ async function ncGenerar() {
         nombre: inf.petsNombre || "",
         codigo: inf.petsCodigo || "",
         numerales: numerales
-      } : undefined
+      } : undefined,
+      procedimientoCorrecto: inf.procedimientoCorrecto || undefined
     };
 
     const res = await podFetch(`${AI_API_BASE}/api/cartas/generate`, {
@@ -4194,6 +4248,323 @@ const ncObserver = new MutationObserver(() => {
 });
 const viewNueva = document.getElementById("view-nueva-carta");
 if (viewNueva) ncObserver.observe(viewNueva, { attributes: true, attributeFilter: ["class"] });
+
+// ============================================================================
+// Organigrama (jefe directo) + Envío de la carta al jefe por correo
+// ============================================================================
+(function(){
+  const $ = (id) => document.getElementById(id);
+
+  // Health cache: saber si el envío directo SMTP está disponible.
+  let _health = null;
+  function podHealth(){
+    if(!_health) _health = podFetch(`${AI_API_BASE}/api/health`).then(r=>r.json()).catch(()=>({}));
+    return _health;
+  }
+
+  // ---------- Lookup del jefe directo ----------
+  function jefeCorreoInputHtml(correo){
+    return `<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <label style="font-size:11.5px;color:var(--gray-text);">Correo del jefe:</label>
+      <input id="nc-jefe-correo" type="email" value="${escapeHtml(correo||"")}" placeholder="jefe@poderosa.com.pe" style="flex:1;min-width:220px;padding:6px 10px;font-size:12px;border:1px solid var(--gray-line);border-radius:6px;">
+    </div>`;
+  }
+  function wireJefeCorreo(block){
+    const inp = block.querySelector("#nc-jefe-correo");
+    if(inp) inp.addEventListener("input", ()=>{ ncState.jefe = { ...(ncState.jefe||{}), correoJefe: inp.value.trim(), manual:true }; });
+  }
+
+  async function ncLookupJefe(){
+    const nombre = ($("nc-trab-nombre")?.value || "").trim();
+    const block = $("nc-jefe-block");
+    if(!block) return;
+    if(nombre.length < 3){ block.style.display="none"; return; }
+    block.style.display="block";
+    block.innerHTML = `<div style="font-size:11.5px;color:var(--gray-muted);">Buscando jefe directo de <strong>${escapeHtml(nombre)}</strong> en el organigrama…</div>`;
+    try{
+      const res = await podFetch(`${AI_API_BASE}/api/organigrama/buscar?q=${encodeURIComponent(nombre)}`);
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      renderJefeBlock(block, data.resultados || []);
+    }catch(err){
+      block.innerHTML = `<div style="font-size:11.5px;color:var(--terracotta);">No se pudo consultar el organigrama (${escapeHtml(err.message)}). Ingresa el correo del jefe manualmente:</div>` + jefeCorreoInputHtml("");
+      ncState.jefe = null; wireJefeCorreo(block);
+    }
+  }
+
+  function renderJefeBlock(block, matches){
+    if(!matches.length){
+      block.innerHTML = `<div style="font-size:12px;color:var(--gray-text);">⚠ No encontré a esta persona en el organigrama. Ingresa el correo del jefe manualmente:</div>` + jefeCorreoInputHtml("");
+      ncState.jefe = null; wireJefeCorreo(block); return;
+    }
+    const opts = matches.map((m,i)=>`<option value="${i}">${escapeHtml(m.trabajador)} — ${escapeHtml(m.puesto||"")}</option>`).join("");
+    block.innerHTML = `
+      <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Jefe directo (organigrama)</div>
+      ${matches.length>1 ? `<div class="field" style="margin-bottom:8px;"><label style="font-size:11px;">${matches.length} coincidencias — elige el trabajador correcto</label><select id="nc-jefe-pick" style="width:100%;padding:6px 10px;font-size:12px;">${opts}</select></div>`:``}
+      <div id="nc-jefe-info"></div>`;
+    const pick = block.querySelector("#nc-jefe-pick");
+    const draw = ()=>{
+      const m = matches[pick ? Number(pick.value) : 0];
+      ncState.jefe = { trabajador:m.trabajador, jefe:m.jefe, correoJefe:m.correoJefe, gerente:m.gerente, correoGerente:m.correoGerente };
+      $("nc-jefe-info").innerHTML = `
+        <div style="font-size:12.5px;color:var(--gray-text);line-height:1.6;">
+          <div><strong>${escapeHtml(m.jefe||"—")}</strong> <span style="color:var(--gray-muted);">· jefe directo de ${escapeHtml(m.trabajador)}</span></div>
+          ${jefeCorreoInputHtml(m.correoJefe||"")}
+          ${m.gerente ? `<div style="margin-top:6px;font-size:11.5px;color:var(--gray-muted);">Gerente: ${escapeHtml(m.gerente)}${m.correoGerente?` · ${escapeHtml(m.correoGerente)}`:""}</div>`:""}
+          ${!m.correoJefe ? `<div style="margin-top:4px;font-size:11px;color:var(--orange);">Este jefe no tiene correo en el directorio — escríbelo arriba.</div>`:""}
+        </div>`;
+      wireJefeCorreo(block);
+    };
+    if(pick) pick.addEventListener("change", draw);
+    draw();
+  }
+  window.ncLookupJefe = ncLookupJefe;
+
+  // Disparadores del lookup
+  $("nc-trab-nombre")?.addEventListener("change", ncLookupJefe);
+  $("nc-trab-nombre")?.addEventListener("blur", ncLookupJefe);
+
+  // ---------- Mensaje estándar (localStorage) ----------
+  const TPL_KEY = "pod_correo_template";
+  const DEFAULT_TPL =
+`Estimado(a) {jefe}:
+
+Adjunto la {tipo} correspondiente al colaborador {trabajador} ({unidad}), caso {caso}, emitida por la Gerencia de Recursos Humanos.
+
+Le solicito gestionar la notificacion al trabajador conforme al procedimiento disciplinario vigente y remitir a RR.HH. el cargo de recepcion debidamente firmado.
+
+Quedo atento a cualquier consulta.
+
+Atentamente,
+{firmante}
+Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
+  function getTpl(){ return localStorage.getItem(TPL_KEY) || DEFAULT_TPL; }
+  function setTpl(v){ localStorage.setItem(TPL_KEY, v); }
+  function fillTpl(tpl, vars){ return tpl.replace(/\{(\w+)\}/g, (_,k)=> (vars[k]!=null && vars[k]!=="" ? vars[k] : `{${k}}`)); }
+
+  // ---------- Utilidades .eml ----------
+  function b64utf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function wrap76(s){ return s.replace(/.{1,76}/g, "$&\r\n"); }
+  function encHeader(s){ return /[^\x00-\x7F]/.test(s) ? `=?UTF-8?B?${b64utf8(s)}?=` : s; }
+  function buildEml({from,to,cc,subject,html,attachments}){
+    const b = "=_POD_"+Math.random().toString(36).slice(2,12);
+    let m = "";
+    m += `From: ${from||to}\r\n`;
+    m += `To: ${to}\r\n`;
+    if(cc) m += `Cc: ${cc}\r\n`;
+    m += `Subject: ${encHeader(subject)}\r\n`;
+    m += `X-Unsent: 1\r\n`;                 // Outlook abre el .eml como BORRADOR editable
+    m += `MIME-Version: 1.0\r\n`;
+    m += `Content-Type: multipart/mixed; boundary="${b}"\r\n\r\n`;
+    m += `--${b}\r\n`;
+    m += `Content-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n`;
+    m += wrap76(b64utf8(html)) + "\r\n";
+    for(const a of (attachments||[])){
+      m += `--${b}\r\n`;
+      m += `Content-Type: ${a.contentType||"application/pdf"}; name="${a.filename}"\r\n`;
+      m += `Content-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename="${a.filename}"\r\n\r\n`;
+      m += wrap76(a.contentBase64) + "\r\n";
+    }
+    m += `--${b}--\r\n`;
+    return new Blob([m], {type:"message/rfc822"});
+  }
+
+  // ---------- PDF del preview → base64 ----------
+  async function previewPdfBase64(node){
+    const opt = { margin:[12,12,12,12], image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} };
+    const blob = await html2pdf().set(opt).from(node).outputPdf("blob");
+    const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(blob); });
+    return base64;
+  }
+
+  // ---------- Aprobar cambios → panel de correo ----------
+  async function ncAprobarCambios(){
+    const st = $("nc-aprobar-status");
+    if(!ncState.cartaOutput){ if(st){st.textContent="Genera la carta primero."; st.style.color="var(--terracotta)";} return; }
+    if(st){ st.textContent="Guardando cambios…"; st.style.color="var(--gray-muted)"; }
+    try{
+      if(ncState.persistedId){
+        await podFetch(`${AI_API_BASE}/api/cartas/${ncState.persistedId}/feedback`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ finalEditedOutput: ncState.cartaOutput }) }).catch(()=>{});
+        await podFetch(`${AI_API_BASE}/api/cartas/${ncState.persistedId}/estado`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ estado:"revisada" }) }).catch(()=>{});
+      }
+      if(st){ st.textContent="✓ Cambios aprobados (estado: revisada). Revisa y envía abajo."; st.style.color="var(--green)"; }
+      await renderCorreoPanel();
+    }catch(err){ if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
+  }
+  $("nc-aprobar-btn")?.addEventListener("click", ncAprobarCambios);
+
+  async function renderCorreoPanel(){
+    const panel = $("nc-correo-panel"); if(!panel) return;
+    const jefe = ncState.jefe || {};
+    const correoJefe = (jefe.correoJefe || ($("nc-jefe-correo")?.value||"")).trim();
+    const vars = {
+      jefe: jefe.jefe || "",
+      trabajador: ncState.trabajador?.nombre || "",
+      tipo: "Carta de Imputación de falta",
+      caso: ncState.caseId || "",
+      unidad: ncState.trabajador?.unidad || "",
+      firmante: "Gerencia de Recursos Humanos",
+    };
+    const asunto = `Medida disciplinaria — ${vars.trabajador} — ${vars.caso}`;
+    const smtpOn = !!(await podHealth()).emailConfigured;
+    panel.style.display="block";
+    panel.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field" style="margin:0;"><label style="font-size:11px;">Para (jefe directo)</label><input id="co-to" type="email" value="${escapeHtml(correoJefe)}" placeholder="jefe@poderosa.com.pe"></div>
+        <div class="field" style="margin:0;"><label style="font-size:11px;">CC (opcional)</label><input id="co-cc" type="text" value="${escapeHtml(jefe.correoGerente||"")}" placeholder="gerencia@poderosa.com.pe"></div>
+      </div>
+      <div class="field" style="margin:10px 0 0;"><label style="font-size:11px;">Asunto</label><input id="co-subject" type="text" value="${escapeHtml(asunto)}"></div>
+      <div class="field" style="margin:10px 0 0;">
+        <label style="font-size:11px;display:flex;justify-content:space-between;align-items:center;">Mensaje <a href="#" id="co-edit-tpl" style="font-size:10.5px;color:var(--teal);">✎ editar mensaje estándar</a></label>
+        <textarea id="co-body" rows="9" style="font-size:12px;">${escapeHtml(fillTpl(getTpl(), vars))}</textarea>
+      </div>
+      <div id="co-tpl-editor" style="display:none;margin-top:8px;padding:10px 12px;background:var(--cream);border:1px solid var(--cream-dark);border-radius:7px;">
+        <div style="font-size:11px;color:var(--gray-muted);margin-bottom:6px;">Mensaje estándar (se guarda en este navegador). Placeholders: {jefe} {trabajador} {tipo} {caso} {unidad} {firmante}</div>
+        <textarea id="co-tpl" rows="8" style="width:100%;font-size:12px;">${escapeHtml(getTpl())}</textarea>
+        <div style="margin-top:6px;display:flex;gap:8px;">
+          <button class="btn primary" id="co-tpl-save" style="font-size:12px;">Guardar mensaje estándar</button>
+          <button class="btn" id="co-tpl-reset" style="font-size:12px;">Restaurar por defecto</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="btn primary" id="co-eml" style="background:#2A5BA0;font-size:13px;">📧 Generar borrador en Outlook (con adjunto)</button>
+        <button class="btn" id="co-send" ${smtpOn?'':'disabled'} style="font-size:13px;background:${smtpOn?'#2E8B57':'#d8d8d8'};color:${smtpOn?'#fff':'#888'};${smtpOn?'':'cursor:not-allowed;'}">✉ Enviar desde la herramienta</button>
+        <span id="co-status" style="font-size:11.5px;color:var(--gray-muted);"></span>
+      </div>
+      <div style="margin-top:6px;font-size:10.5px;color:var(--gray-muted);">${smtpOn ? "El envío directo está activo (SMTP configurado en el servidor)." : "Envío directo desactivado (sin SMTP). Usa el borrador de Outlook: abre el archivo descargado, revisa y pulsa Enviar."}</div>
+    `;
+
+    function coMsg(t,k){ const s=$("co-status"); if(!s)return; s.textContent=t; s.style.color = k==="ok"?"var(--green)":k==="err"?"var(--terracotta)":"var(--gray-muted)"; }
+    function bodyHtml(){ return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;white-space:pre-wrap;">${escapeHtml($("co-body").value).replace(/\n/g,"<br>")}</div>`; }
+    function pdfName(){ return `Carta-${String(ncState.cartaOutput?.numeroCarta||ncState.caseId||"borrador").replace(/[\/\\?\s]+/g,"-")}.pdf`; }
+
+    $("co-edit-tpl").addEventListener("click",(e)=>{ e.preventDefault(); const ed=$("co-tpl-editor"); ed.style.display = ed.style.display==="none"?"block":"none"; });
+    $("co-tpl-save").addEventListener("click",()=>{ setTpl($("co-tpl").value); $("co-body").value = fillTpl(getTpl(), vars); coMsg("Mensaje estándar guardado.","ok"); });
+    $("co-tpl-reset").addEventListener("click",()=>{ setTpl(DEFAULT_TPL); $("co-tpl").value=DEFAULT_TPL; $("co-body").value=fillTpl(DEFAULT_TPL, vars); });
+
+    $("co-eml").addEventListener("click", async ()=>{
+      const to=$("co-to").value.trim(); if(!to){ coMsg("Falta el correo del jefe.","err"); return; }
+      coMsg("Generando PDF y borrador de Outlook…","muted");
+      try{
+        const base64 = await previewPdfBase64($("nc-preview-paper"));
+        const eml = buildEml({ to, cc:$("co-cc").value.trim(), subject:$("co-subject").value, html:bodyHtml(), attachments:[{filename:pdfName(), contentBase64:base64, contentType:"application/pdf"}] });
+        const url=URL.createObjectURL(eml); const a=document.createElement("a"); a.href=url; a.download=`Correo-${String(ncState.caseId||"carta").replace(/[\/\\?\s]+/g,"-")}.eml`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+        coMsg("✓ Borrador .eml descargado. Ábrelo: Outlook lo abre con el destinatario y la carta adjunta. Revisa y pulsa Enviar.","ok");
+      }catch(err){ coMsg("Error: "+err.message,"err"); }
+    });
+
+    $("co-send").addEventListener("click", async ()=>{
+      if($("co-send").disabled) return;
+      const to=$("co-to").value.trim(); if(!to){ coMsg("Falta el correo del jefe.","err"); return; }
+      const cc=$("co-cc").value.trim();
+      if(!confirm(`Se enviará un correo REAL a:\n${to}${cc?("\nCC: "+cc):""}\n\ncon la carta adjunta. ¿Continuar?`)) return;
+      coMsg("Enviando…","muted");
+      try{
+        const base64 = await previewPdfBase64($("nc-preview-paper"));
+        const res = await podFetch(`${AI_API_BASE}/api/correos/enviar`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ cartaId:ncState.persistedId||undefined, to, cc:cc||undefined, subject:$("co-subject").value, html:bodyHtml(), attachments:[{filename:pdfName(), contentBase64:base64, contentType:"application/pdf"}] }) });
+        const data = await res.json(); if(!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+        coMsg("✓ Correo enviado al jefe. Estado de la carta: notificada.","ok");
+        refreshHistorial?.();
+      }catch(err){ coMsg("Error: "+err.message,"err"); }
+    });
+  }
+})();
+
+// ============================================================================
+// Intake: analizar informe / hilo de correos → rellenar campos + resumen de normas
+// ============================================================================
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  let informeFile = null;
+  const fileInput = $("nc-informe-file");
+  if (fileInput) fileInput.addEventListener("change", ()=>{ informeFile = fileInput.files[0]||null; const fn=$("nc-informe-filename"); if(fn) fn.textContent = informeFile ? informeFile.name : ""; });
+
+  function setVal(id, v){ const el=$(id); if(el && v!=null && v!=="") el.value = v; }
+  function setSelect(id, v){ const el=$(id); if(!el||!v) return; if(Array.from(el.options).some(o=>o.value===v||o.text===v)) el.value=v; }
+  function normDTL(s){ if(!s) return ""; if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s+"T08:00"; const m=String(s).match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/); return m?m[1]:""; }
+  function normDate(s){ const m=String(s||"").match(/^(\d{4}-\d{2}-\d{2})/); return m?m[1]:""; }
+
+  function aplicarAnalisis(a){
+    const t=a.trabajador||{};
+    setVal("nc-trab-nombre", t.nombre); setVal("nc-trab-dni", t.dni); setVal("nc-trab-puesto", t.puesto); setSelect("nc-trab-unidad", t.unidad);
+    const inc=a.incidente||{};
+    setVal("nc-inc-fecha", normDTL(inc.fechaHechoISO)); setVal("nc-inc-lugar", inc.lugar); setVal("nc-inc-conducta", inc.conducta);
+    const io=a.informeOrigen||{};
+    setVal("nc-inf-numero", io.numero); setVal("nc-inf-fecha", normDate(io.fechaISO)); setVal("nc-inf-area", io.area);
+    const p=a.petsAplicable||{};
+    setVal("nc-pets-codigo", p.codigo); setVal("nc-pets-nombre", p.nombre);
+    if(Array.isArray(p.numerales) && p.numerales.length) setVal("nc-pets-numerales", p.numerales.join(", "));
+    if(Array.isArray(a.anexos) && a.anexos.length) setVal("nc-inc-anexos", a.anexos.join("\n"));
+    ncState.analisis = a;
+    if(window.ncLookupJefe) window.ncLookupJefe();
+  }
+
+  function renderResumen(a){
+    const box=$("nc-analisis-resumen"); if(!box) return;
+    const conf=a.confianza||"?";
+    const colorConf = conf==="alta"?"var(--green)":conf==="media"?"var(--orange)":"var(--terracotta)";
+    const normas=(a.normasPropuestas||[]).map(n=>`<li><strong>${escapeHtml(n.norma||"")}</strong>${n.detalle?` — ${escapeHtml(n.detalle)}`:""}</li>`).join("");
+    const notas=(a.notas||[]).map(n=>`<li>${escapeHtml(n)}</li>`).join("");
+    const tipoTxt = a.tipoSugerido==="decision-final" ? "Carta de decisión final" : "Imputación de falta";
+    box.style.display="block";
+    box.innerHTML = `
+      <div style="padding:14px 16px;background:var(--cream);border:1px solid var(--gold);border-radius:9px;">
+        <div style="font-family:var(--font-head);font-size:11px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Resumen del análisis — revísalo antes de generar</div>
+        <div style="font-size:12.5px;color:var(--gray-text);line-height:1.5;">
+          <div><strong>Falta:</strong> ${escapeHtml(a.faltaTipificada||"—")} · <strong>Gravedad:</strong> ${escapeHtml(a.gravedadEstimada||"—")} · <strong>Tipo sugerido:</strong> ${tipoTxt} · <strong style="color:${colorConf};">Confianza: ${escapeHtml(conf)}</strong></div>
+          <div style="margin-top:10px;font-weight:600;color:var(--teal);">Normas / cláusulas que citará la carta:</div>
+          <ul style="margin:6px 0 0 18px;padding:0;">${normas||"<li>(no se identificaron — revísalo)</li>"}</ul>
+          ${a.resumenNormas?`<div style="margin-top:10px;padding:10px 12px;background:#fff;border:1px solid var(--gray-line);border-radius:7px;font-size:12px;line-height:1.55;">${escapeHtml(a.resumenNormas)}</div>`:""}
+          ${notas?`<div style="margin-top:10px;color:var(--orange);font-weight:600;">⚠ Revisar / completar:</div><ul style="margin:4px 0 0 18px;padding:0;">${notas}</ul>`:""}
+          <div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">Los campos de los pasos 1 y 2 se rellenaron con lo extraído. Ajusta lo que haga falta y pulsa <strong>Generar carta con IA</strong> — la carta citará exactamente estas normas.</div>
+        </div>
+      </div>`;
+  }
+
+  async function analizar(){
+    const status=$("nc-analizar-status");
+    const texto=($("nc-informe-texto")?.value||"").trim();
+    if(!informeFile && texto.length<30){ if(status){status.style.color="var(--terracotta)"; status.textContent="Pega el informe/correos (mín. 30 caracteres) o sube un archivo.";} return; }
+    const btn=$("nc-analizar-btn"); if(!btn) return; btn.disabled=true; const orig=btn.textContent; btn.textContent="⏳ Analizando con IA…";
+    if(status){ status.style.color="var(--gray-muted)"; status.textContent="La IA está leyendo el informe y proponiendo las normas…"; }
+    try{
+      let res;
+      if(informeFile){ const fd=new FormData(); fd.append("archivo", informeFile); res=await podFetch(`${AI_API_BASE}/api/cartas/analizar-informe`, { method:"POST", body:fd }); }
+      else { res=await podFetch(`${AI_API_BASE}/api/cartas/analizar-informe`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ texto }) }); }
+      const data=await res.json();
+      if(!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+      aplicarAnalisis(data.analisis||{});
+      renderResumen(data.analisis||{});
+      if(status){ status.style.color="var(--green)"; status.textContent=`✓ Análisis listo en ${data.elapsedMs} ms. Revisa los campos y el resumen de normas abajo.`; }
+    }catch(err){ if(status){ status.style.color="var(--terracotta)"; status.textContent="Error: "+err.message; } }
+    finally{ btn.disabled=false; btn.textContent=orig; }
+  }
+  $("nc-analizar-btn")?.addEventListener("click", analizar);
+})();
+
+// ============================================================================
+// Adjunto opcional: procedimiento/manual de cómo debió ejecutarse la labor
+// ============================================================================
+(function(){
+  const fileInput = document.getElementById("nc-proc-file");
+  if (!fileInput) return;
+  fileInput.addEventListener("change", async () => {
+    const f = fileInput.files[0]; if (!f) return;
+    const status = document.getElementById("nc-proc-status");
+    const ta = document.getElementById("nc-proc-texto");
+    status.style.color = "var(--gray-muted)"; status.textContent = `Extrayendo texto de ${f.name}…`;
+    try {
+      const fd = new FormData(); fd.append("archivo", f);
+      const res = await podFetch(`${AI_API_BASE}/api/extraer-texto`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      ta.value = data.texto || "";
+      status.style.color = "var(--green)"; status.textContent = `✓ ${data.chars.toLocaleString()} caracteres extraídos de ${data.filename}. Revisa/edita arriba.`;
+    } catch (err) {
+      status.style.color = "var(--terracotta)"; status.textContent = "Error: " + err.message;
+    }
+  });
+})();
 </script>
 </body>
 </html>
