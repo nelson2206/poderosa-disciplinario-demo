@@ -568,6 +568,15 @@ export type AnalisisInformeOutput = {
   tipoSugerido: "carta1" | "decision-final";
   normasPropuestas: NormaPropuesta[];
   resumenNormas: string;
+  /** Propuesta de sanción del jefe/supervisor detectada en el texto, clasificada en las categorías de la decisión final. */
+  sancionPropuesta: {
+    detectada: boolean;
+    categoria: "amonestacion" | "suspension" | "despido" | "archivo" | null;
+    diasSuspension: number | null;
+    textoOriginal: string | null;
+    propuestaPor: string | null;
+    confianza: "alta" | "media" | "baja";
+  };
   confianza: "alta" | "media" | "baja";
   notas: string[];
 };
@@ -588,6 +597,7 @@ const ANALISIS_PREFIX = [
   '  "tipoSugerido": "carta1 | decision-final",',
   '  "normasPropuestas": [ { "norma": "Art. 25 inc. a) TUO D.L. 728", "detalle": "Por qué aplica a este hecho (1 frase)." }, { "norma": "RIT Art. 8.4.b", "detalle": "..." } ],',
   '  "resumenNormas": "Resumen en 3-6 frases, para revisión de RR.HH., de las cláusulas y normas que se citarán y por qué. Lenguaje claro.",',
+  '  "sancionPropuesta": { "detectada": true, "categoria": "amonestacion | suspension | despido | archivo | null", "diasSuspension": 3, "textoOriginal": "cita textual de la propuesta del jefe", "propuestaPor": "nombre/cargo de quien la propone o null", "confianza": "alta | media | baja" },',
   '  "confianza": "alta | media | baja",',
   '  "notas": ["Datos que faltan o supuestos asumidos — para que RR.HH. los complete antes de generar."]',
   "}",
@@ -599,6 +609,7 @@ const ANALISIS_PREFIX = [
   "- `conducta` debe respetar la presunción de inocencia (es para una Carta 1 de imputación): describe tiempo, lugar, modo y quién observó, sin declarar culpable al trabajador.",
   "- `tipoSugerido` = \"decision-final\" SOLO si el texto evidencia que ya hubo descargo del trabajador o venció su plazo; en otro caso \"carta1\".",
   "- `normasPropuestas`: cita SOLO artículos/numerales presentes en la 'Base normativa de Poderosa' de abajo (documento + ref exacta), cada uno con un `detalle` de por qué aplica. Si no hay extractos que sustenten el hecho, deja `normasPropuestas` vacío y anótalo en `notas` (que Legal complete el sustento). No cites normas externas que no aparezcan en los extractos.",
+  "- `sancionPropuesta`: detecta si el informe o el hilo de correos contiene una PROPUESTA O RECOMENDACIÓN DE SANCIÓN del jefe/supervisor (frases como 'recomiendo amonestación', 'sugiero suspensión de 3 días', 'amerita el despido', 'propongo archivar el caso'). Clasifícala en `categoria`: \"amonestacion\" (amonestación escrita), \"suspension\" (suspensión sin goce — extrae los días en `diasSuspension`), \"despido\", o \"archivo\" (no sancionar / desestimar). Copia la frase exacta en `textoOriginal` y quién la propone en `propuestaPor`. Si NO hay una propuesta de sanción explícita, devuelve `detectada:false`, `categoria:null`, `diasSuspension:null` — NUNCA inventes una sanción ni la deduzcas de la gravedad.",
   "- Sé conservador: ante duda, baja la `confianza` y explica en `notas`.",
 ].join("\n");
 
