@@ -4506,12 +4506,23 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     const normas=(a.normasPropuestas||[]).map(n=>`<li><strong>${escapeHtml(n.norma||"")}</strong>${n.detalle?` — ${escapeHtml(n.detalle)}`:""}</li>`).join("");
     const notas=(a.notas||[]).map(n=>`<li>${escapeHtml(n)}</li>`).join("");
     const tipoTxt = a.tipoSugerido==="decision-final" ? "Carta de decisión final" : "Imputación de falta";
+    const sp = a.sancionPropuesta;
+    const catLabel = { amonestacion:"Amonestación escrita", suspension:"Suspensión sin goce", despido:"Despido", archivo:"Archivo del procedimiento (sin sanción)" };
+    const spHtml = (sp && sp.detectada && sp.categoria)
+      ? `<div style="margin-top:10px;padding:10px 12px;background:#FBF3E0;border:1px solid var(--gold);border-radius:7px;">
+           <strong style="color:var(--teal);">⚖ Sanción propuesta por el jefe:</strong> ${escapeHtml(catLabel[sp.categoria]||sp.categoria)}${sp.categoria==="suspension"&&sp.diasSuspension?` · <strong>${escapeHtml(String(sp.diasSuspension))} día(s)</strong>`:""}${sp.confianza?` <span style="color:var(--gray-muted);font-size:11px;">(confianza: ${escapeHtml(sp.confianza)})</span>`:""}
+           ${sp.propuestaPor?`<div style="font-size:11.5px;color:var(--gray-muted);margin-top:2px;">Propuesta por: ${escapeHtml(sp.propuestaPor)}</div>`:""}
+           ${sp.textoOriginal?`<div style="font-size:11.5px;color:var(--gray-text);margin-top:3px;font-style:italic;">«${escapeHtml(sp.textoOriginal)}»</div>`:""}
+           <div style="font-size:11px;color:var(--gray-muted);margin-top:4px;">Úsala en la <strong>Carta de decisión final</strong> (tras evaluar el descargo).</div>
+         </div>`
+      : (sp ? `<div style="margin-top:10px;font-size:11.5px;color:var(--gray-muted);">No se detectó una propuesta de sanción explícita del jefe en el texto.</div>` : "");
     box.style.display="block";
     box.innerHTML = `
       <div style="padding:14px 16px;background:var(--cream);border:1px solid var(--gold);border-radius:9px;">
         <div style="font-family:var(--font-head);font-size:11px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Resumen del análisis — revísalo antes de generar</div>
         <div style="font-size:12.5px;color:var(--gray-text);line-height:1.5;">
           <div><strong>Falta:</strong> ${escapeHtml(a.faltaTipificada||"—")} · <strong>Gravedad:</strong> ${escapeHtml(a.gravedadEstimada||"—")} · <strong>Tipo sugerido:</strong> ${tipoTxt} · <strong style="color:${colorConf};">Confianza: ${escapeHtml(conf)}</strong></div>
+          ${spHtml}
           <div style="margin-top:10px;font-weight:600;color:var(--teal);">Normas / cláusulas que citará la carta:</div>
           <ul style="margin:6px 0 0 18px;padding:0;">${normas||"<li>(no se identificaron — revísalo)</li>"}</ul>
           ${a.resumenNormas?`<div style="margin-top:10px;padding:10px 12px;background:#fff;border:1px solid var(--gray-line);border-radius:7px;font-size:12px;line-height:1.55;">${escapeHtml(a.resumenNormas)}</div>`:""}
