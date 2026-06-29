@@ -4528,10 +4528,14 @@ if (viewNueva) ncObserver.observe(viewNueva, { attributes: true, attributeFilter
       block.innerHTML = `<div style="font-size:12px;color:var(--gray-text);">⚠ No encontré a esta persona en el organigrama. Ingresa el correo del jefe manualmente:</div>` + jefeCorreoInputHtml("");
       ncState.jefe = null; wireJefeCorreo(block); return;
     }
-    const opts = matches.map((m,i)=>`<option value="${i}">${escapeHtml(m.trabajador)} — ${escapeHtml(m.puesto||"")}</option>`).join("");
+    const aprox = matches.some(m=>m.aproximado);
+    const opts = matches.map((m,i)=>`<option value="${i}">${escapeHtml(m.trabajador)} — ${escapeHtml(m.puesto||"")}${m.aproximado&&m.score!=null?` (${Math.round(m.score*100)}% probable)`:""}</option>`).join("");
+    // Con match aproximado mostramos el selector aunque haya un solo candidato, para que RR.HH. confirme.
+    const mostrarPicker = matches.length>1 || aprox;
     block.innerHTML = `
       <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:1.4px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Jefe directo (organigrama)</div>
-      ${matches.length>1 ? `<div class="field" style="margin-bottom:8px;"><label style="font-size:11px;">${matches.length} coincidencias — elige el trabajador correcto</label><select id="nc-jefe-pick" style="width:100%;padding:6px 10px;font-size:12px;">${opts}</select></div>`:``}
+      ${aprox ? `<div style="margin-bottom:8px;padding:7px 10px;border-radius:6px;background:rgba(214,158,46,.12);border:1px solid var(--orange);font-size:11.5px;color:var(--orange);line-height:1.5;">⚠ No hubo coincidencia exacta del nombre. Te muestro la(s) opción(es) más probable(s) del organigrama — <strong>confirma</strong> que sea la persona correcta.</div>`:``}
+      ${mostrarPicker ? `<div class="field" style="margin-bottom:8px;"><label style="font-size:11px;">${aprox?"Coincidencia aproximada — elige el trabajador correcto":`${matches.length} coincidencias — elige el trabajador correcto`}</label><select id="nc-jefe-pick" style="width:100%;padding:6px 10px;font-size:12px;">${opts}</select></div>`:``}
       <div id="nc-jefe-info"></div>`;
     const pick = block.querySelector("#nc-jefe-pick");
     const draw = ()=>{
