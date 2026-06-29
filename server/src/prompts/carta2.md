@@ -16,7 +16,12 @@
 6. **ANÁLISIS DE LOS HECHOS EXPUESTOS** (`analisisDescargo`):
    - Si **hay descargo**: resume los argumentos del trabajador y los evalúa **uno a uno**. Los que tengan mérito probatorio se **aceptan** (y pueden atenuar o llevar a archivo); los que no, se **refutan con fundamento** en la base normativa y las pruebas. Concluir si los hechos quedaron desvirtuados (total/parcial) o **acreditados**.
    - Si **no hay descargo** y venció el plazo: "pese al plazo otorgado … no presentó descargo alguno; en consecuencia, los hechos atribuidos en la carta de imputación, al no haber sido desvirtuados, se consideran acreditados y válidamente verificados."
-7. **TIPIFICACIÓN DE LAS FALTAS LABORALES** (`tipificacion`): "Los hechos antes descritos constituirían una trasgresión al {RIT / RISST / Código de Ética}; en consecuencia, PODEROSA ha considerado que su conducta se encontraría tipificada en:" seguido de las **citas LITERALES** de los artículos/numerales (Art. 3°, 62°, 63° incisos, 76° inciso, etc.) — **tomadas de la Base normativa de Poderosa provista**. (La tipificación puede usar "se encontraría tipificada", como en el formato real.)
+7. **TIPIFICACIÓN DE LAS FALTAS LABORALES** (`tipificacion`): "Los hechos antes descritos constituirían una trasgresión a las normas internas de PODEROSA; en consecuencia, se ha considerado que su conducta se encontraría tipificada en las siguientes disposiciones:" seguido de las **citas LITERALES** de los artículos/numerales, **agrupadas bajo estos tres encabezados exactos y en este orden** (igual que en la carta de imputación), incluyendo solo los cuerpos que apliquen:
+   - **Reglamento Interno de Trabajo (RIT):** prioritario — cita el mayor número de artículos del RIT que apliquen (típicamente Art. 3°, 62°, 63°, 67°, 69°, 70°, 72°, 74°, 75°), incluyendo SIEMPRE el núcleo obligatorio del RIT provisto.
+   - **Reglamento Interno de Seguridad y Salud Ocupacional (RISSO):** numerales aplicables (p.ej. Numeral 6, 8), si la falta tiene componente de seguridad.
+   - **Código de Ética y Conducta – Cumplimiento organizacional:** artículos/cláusulas aplicables, si la conducta los involucra.
+
+   Todas las citas son **LITERALES** y provienen exclusivamente de la "Base normativa de Poderosa" provista (incluido el núcleo RIT obligatorio). (La tipificación puede usar "se encontraría tipificada", como en el formato real.)
 8. **DECISIÓN FINAL** (`decisionFinal`): "En aplicación de los principios de razonabilidad y proporcionalidad, y habiéndose efectuado el análisis de los medios probatorios y antecedentes … la empresa ha decidido {sanción según el tipo}."
 9. **Exhortación** (`exhortacion`): exhortar a cumplir en adelante + advertir reincidencia; y "agradeceremos se sirva firmar la copia de la presente en señal de haber tomado conocimiento … incorporada a su legajo personal."
 10. **Atentamente,** (`despedida`) + firma.
@@ -42,7 +47,7 @@
     "introduccion": "Como es de vuestro pleno conocimiento, …",
     "hechosComprobados": "Con fecha … se identificó que usted … se verificó … se constató …",
     "analisisDescargo": "Que, con fecha … se le hizo entrega de la carta de imputación … {evaluación/refutación del descargo o ausencia de descargo} … se consideran acreditados.",
-    "tipificacion": "Los hechos antes descritos constituirían una trasgresión … se encontraría tipificada en: Reglamento Interno de Trabajo: \"Artículo 62°.- …\" …",
+    "tipificacion": "Los hechos antes descritos constituirían una trasgresión a las normas internas de PODEROSA; en consecuencia, se ha considerado que su conducta se encontraría tipificada en las siguientes disposiciones: Reglamento Interno de Trabajo (RIT): \"Artículo 62°.- …\" \"Artículo 63°.- … w) …\" \"Artículo 70°.- …\" Reglamento Interno de Seguridad y Salud Ocupacional (RISSO): \"Numeral 8.- …\" Código de Ética y Conducta – Cumplimiento organizacional: \"…\"",
     "decisionFinal": "En aplicación de los principios de razonabilidad y proporcionalidad … la empresa ha decidido imponerle …",
     "exhortacion": "Finalmente, le exhortamos a … Asimismo, agradeceremos se sirva firmar la copia de la presente …",
     "despedida": "Atentamente,"
