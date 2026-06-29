@@ -1725,8 +1725,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
 
         <!-- Stepper -->
         <div id="nc-stepper" style="display:flex;gap:8px;margin:18px 0 22px;">
-          <div class="nc-step active" data-step="1" style="flex:1;background:var(--teal);color:var(--white);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gold);color:var(--teal-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">1</span><span><strong>Colaborador</strong><br><span style="opacity:.85;font-size:10.5px;">Datos identificatorios</span></span></div>
-          <div class="nc-step" data-step="2" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">2</span><span><strong>Incidente</strong><br><span style="font-size:10.5px;">Descripción + evidencias</span></span></div>
+          <div class="nc-step active" data-step="1" style="flex:1;background:var(--teal);color:var(--white);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gold);color:var(--teal-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">1</span><span><strong>Inicio</strong><br><span style="opacity:.85;font-size:10.5px;">Informe o carta previa</span></span></div>
+          <div class="nc-step" data-step="2" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">2</span><span><strong>Colaborador + incidente</strong><br><span style="font-size:10.5px;">Datos + descripción</span></span></div>
           <div class="nc-step" data-step="3" style="flex:1;background:var(--cream);color:var(--gray-muted);padding:12px 16px;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:24px;background:var(--gray-line);color:var(--gray-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;">3</span><span><strong>Editar y enviar</strong><br><span style="font-size:10.5px;">Aprobar · correo al jefe</span></span></div>
         </div>
 
@@ -1748,7 +1748,28 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <div id="nc-analisis-resumen" style="display:none;margin-top:12px;"></div>
             </div>
           </div>
+          <!-- Vincular con una carta previa del mismo colaborador (tracking / antecedente) -->
           <div class="card">
+            <div class="card-header"><h2>¿El colaborador ya tiene una carta previa? <span style="font-weight:400;font-size:12px;color:var(--gray-muted);">(opcional)</span></h2></div>
+            <div style="padding:18px 20px;">
+              <div style="font-size:12px;color:var(--gray-muted);margin-bottom:10px;">Busca por <strong>nombre o DNI</strong> en el historial de cartas ya enviadas. Si encuentras una, se <strong>vincula</strong> esta nueva imputación (como antecedente / seguimiento) y se <strong>precargan los datos del colaborador</strong> en el siguiente paso.</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input id="nc-link-input" type="text" placeholder="Nombre o DNI del colaborador…" style="flex:1;">
+                <button class="btn" id="nc-link-btn" type="button" style="font-size:12px;white-space:nowrap;">Buscar</button>
+              </div>
+              <select id="nc-link-result" style="display:none;width:100%;margin-top:6px;font-size:12px;"></select>
+              <div id="nc-link-status" style="font-size:10.5px;color:var(--gray-muted);margin-top:4px;">Si es la primera carta del colaborador, puedes saltar este paso y continuar.</div>
+              <div id="nc-link-badge" style="display:none;margin-top:10px;padding:9px 12px;background:#EAF6EE;border:1px solid var(--green);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+            <button class="btn primary" data-nc-next="2">Siguiente: Colaborador e incidente →</button>
+          </div>
+        </div>
+
+        <!-- ===== Paso 2: Colaborador + Incidente + Evidencias ===== -->
+        <div class="nc-pane" data-step-pane="2" style="display:none;">
+          <div class="card" style="margin-bottom:14px;">
             <div class="card-header"><h2>Datos del colaborador</h2></div>
             <div style="padding:18px 20px;">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
@@ -1778,13 +1799,6 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
               <div id="nc-jefe-block" style="display:none;margin-top:16px;padding:13px 15px;background:#EEF5F7;border:1px solid var(--teal);border-radius:9px;"></div>
             </div>
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
-            <button class="btn primary" data-nc-next="2">Siguiente: Incidente →</button>
-          </div>
-        </div>
-
-        <!-- ===== Paso 2: Incidente + Evidencias ===== -->
-        <div class="nc-pane" data-step-pane="2" style="display:none;">
           <div class="card">
             <div class="card-header"><h2>Descripción del incidente</h2></div>
             <div style="padding:18px 20px;">
@@ -3027,6 +3041,60 @@ document.getElementById("c2-buscar-result")?.addEventListener("change", async (e
   } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
 });
 
+// ====== Vincular Imputación con una carta previa del colaborador (paso 1) ======
+let ncLinkCartas = [];
+document.getElementById("nc-link-btn")?.addEventListener("click", async () => {
+  const st = document.getElementById("nc-link-status");
+  const sel = document.getElementById("nc-link-result");
+  const q = (document.getElementById("nc-link-input")?.value || "").trim();
+  const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  if (q.length < 2) { if(st){ st.textContent="Escribe al menos 2 caracteres (nombre o DNI)."; st.style.color="var(--terracotta)"; } return; }
+  if (st) { st.textContent="Buscando en el historial de cartas…"; st.style.color="var(--gray-muted)"; }
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas?limit=200`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const nq = norm(q);
+    const dq = q.replace(/\D/g, "");
+    ncLinkCartas = (data.cartas || []).filter(c => {
+      const porNombre = norm(c.trabajadorNombre).includes(nq);
+      const porDni = dq.length >= 4 && String(c.trabajadorDni || "").replace(/\D/g, "").includes(dq);
+      return porNombre || porDni;
+    });
+    if (!ncLinkCartas.length) { sel.style.display="none"; if(st){ st.textContent=`Sin cartas previas para "${q}". Puedes continuar (será la primera).`; st.style.color="var(--gray-muted)"; } return; }
+    const tipoLbl = t => t==="carta1" ? "Imputación" : (t && t.startsWith("carta2") ? "Decisión final" : (t||"carta"));
+    sel.innerHTML = `<option value="">— ${ncLinkCartas.length} carta(s) — elige una para vincular —</option>` + ncLinkCartas.map((c,i)=>`<option value="${i}">${escapeHtml(c.trabajadorNombre)}${c.trabajadorDni?` · DNI ${escapeHtml(c.trabajadorDni)}`:""} · ${escapeHtml(tipoLbl(c.tipo))} · ${escapeHtml(c.caseId||"")} · ${escapeHtml((c.generatedAt||"").slice(0,10))}</option>`).join("");
+    sel.style.display="block";
+    if (st) { st.textContent=`${ncLinkCartas.length} encontrada(s). Elige una para vincular y precargar.`; st.style.color="var(--green)"; }
+  } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
+});
+document.getElementById("nc-link-result")?.addEventListener("change", async (e) => {
+  const i = e.target.value; if (i==="") return;
+  const summary = ncLinkCartas[Number(i)]; if(!summary) return;
+  const st = document.getElementById("nc-link-status");
+  const badge = document.getElementById("nc-link-badge");
+  if (st) { st.textContent="Cargando la carta previa…"; st.style.color="var(--gray-muted)"; }
+  try {
+    const res = await podFetch(`${AI_API_BASE}/api/cartas/${summary.id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const rec = data.carta || {}, inp = rec.inputJson || {}, out = rec.outputJson || {}, tr = inp.trabajador || {};
+    // Precargar datos del colaborador (paso 2)
+    const setVal = (id,v)=>{ const n=document.getElementById(id); if(n!=null&&v!=null) n.value=v; };
+    setVal("nc-trab-nombre", tr.nombre || rec.trabajadorNombre || "");
+    setVal("nc-trab-dni", tr.dni || rec.trabajadorDni || "");
+    setVal("nc-trab-puesto", tr.puesto || "");
+    if (tr.unidad) setVal("nc-trab-unidad", tr.unidad);
+    // Vincular el caso para tracking (la nueva imputación hereda el caseId)
+    ncState.caseId = rec.caseId || ncState.caseId;
+    ncState.cartaPrevia = { id: summary.id, caseId: rec.caseId, tipo: summary.tipo, numero: out.numeroCarta || inp.numeroCarta || "", fechaISO: (rec.generatedAt||"").slice(0,10) };
+    if (typeof window.ncLookupJefe === "function") window.ncLookupJefe();
+    const tipoLbl = summary.tipo==="carta1" ? "Imputación" : (summary.tipo && summary.tipo.startsWith("carta2") ? "Decisión final" : "carta");
+    if (badge) { badge.style.display="block"; badge.innerHTML = `🔗 Vinculada a <strong>${escapeHtml(tipoLbl)}</strong> ${escapeHtml(ncState.cartaPrevia.numero||"")} · caso <strong>${escapeHtml(rec.caseId||"")}</strong> de ${escapeHtml(summary.trabajadorNombre||"")}. Datos del colaborador precargados en el paso siguiente.`; }
+    if (st) { st.style.color="var(--green)"; st.textContent=`✓ Vinculada. Revisa los datos en "Colaborador e incidente".`; }
+  } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
+});
+
 // Logo + pie oficiales en el preview de Decisión final al cargar la página
 if (typeof c2SetBranding === "function") c2SetBranding();
 
@@ -4125,7 +4193,7 @@ function ncGatherIncidente() {
 
 document.querySelectorAll("[data-nc-next]").forEach(b => b.addEventListener("click", () => {
   const next = Number(b.dataset.ncNext);
-  if (next === 2) ncGatherTrabajador();
+  // Los datos del colaborador ahora viven en el paso 2; se recogen al generar.
   ncSetStep(next);
 }));
 document.querySelectorAll("[data-nc-prev]").forEach(b => b.addEventListener("click", () => {
@@ -4136,6 +4204,7 @@ document.querySelectorAll("[data-nc-prev]").forEach(b => b.addEventListener("cli
 async function ncGenerar() {
   const btn = document.getElementById("nc-generar-btn");
   const status = document.getElementById("nc-generar-status");
+  ncGatherTrabajador();
   ncGatherIncidente();
   btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Redactando (30-40s)…";
   const prog = podStartProgress("nc-generar-status", "Redactando la imputación con formato oficial Poderosa…", 38000);
