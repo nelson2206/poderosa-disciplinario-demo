@@ -2857,7 +2857,7 @@ function hydrateCarta2Preview(carta, tipoLabel) {
   setHTML("pp2-intro", ptag(c.introduccion));
   setHTML("pp2-hechos", ptag(c.hechosComprobados));
   setHTML("pp2-analisis", ptag(c.analisisDescargo));
-  setHTML("pp2-tipificacion", ptag(c.tipificacion));
+  setHTML("pp2-tipificacion", podTipificacionHTML(c.tipificacion, ptag));
   setHTML("pp2-decision", ptag(c.decisionFinal));
   setHTML("pp2-exhortacion", ptag(c.exhortacion));
   setText("pp2-despedida", c.despedida || "Atentamente,");
@@ -3185,6 +3185,44 @@ function renderTemplatesTable() {
 
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Renderiza la TIPIFICACIÓN agrupando las citas bajo los tres encabezados
+// (RIT / RISSO / Código de Ética) como subtítulos en negrita, igual que el Word.
+// Si el texto no trae esos encabezados, cae al render de párrafos normal.
+function podTipificacionHTML(text, ptagFn) {
+  const ptag = ptagFn || (t => !t ? "" : String(t).split(/\n{2,}/).map(p => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`).join(""));
+  if (!text) return "";
+  const t = String(text);
+  const HEADERS = [
+    { re: /Reglamento Interno de Trabajo\s*(?:\(RIT\))?\s*:/i, label: "Reglamento Interno de Trabajo (RIT):" },
+    { re: /Reglamento Interno de Seguridad y Salud Ocupacional\s*(?:\(RISS[OT]\))?\s*:/i, label: "Reglamento Interno de Seguridad y Salud Ocupacional (RISSO):" },
+    { re: /Código de Ética y Conducta\s*(?:[–-]\s*Cumplimiento organizacional)?\s*:/i, label: "Código de Ética y Conducta – Cumplimiento organizacional:" }
+  ];
+  // Ubicar las posiciones de los encabezados en el texto
+  const found = [];
+  for (const h of HEADERS) {
+    const m = h.re.exec(t);
+    if (m) found.push({ index: m.index, end: m.index + m[0].length, label: h.label });
+  }
+  if (!found.length) return ptag(t); // sin encabezados -> render normal
+  found.sort((a, b) => a.index - b.index);
+  let html = "";
+  const intro = t.slice(0, found[0].index).trim();
+  if (intro) html += ptag(intro);
+  for (let k = 0; k < found.length; k++) {
+    const cur = found[k];
+    const bodyEnd = k + 1 < found.length ? found[k + 1].index : t.length;
+    const body = t.slice(cur.end, bodyEnd).trim();
+    html += `<p style="margin:12px 0 4px;font-weight:700;">${escapeHtml(cur.label)}</p>`;
+    const quotes = body.match(/"[^"]+"|“[^”]+”/g);
+    if (quotes && quotes.length) {
+      html += `<div style="margin-left:14px;">` + quotes.map(q => `<p style="margin:0 0 6px;">${escapeHtml(q)}</p>`).join("") + `</div>`;
+    } else if (body) {
+      html += ptag(body);
+    }
+  }
+  return html;
 }
 
 // Membrete (logo) y pie de página oficiales de Poderosa — base64 desde assets/poderosa-brand.js.
@@ -4450,7 +4488,7 @@ function ncRenderPreview() {
     <p style="margin-top:12px;">${escapeHtml(cuerpo.encabezado || "De nuestra consideración:")}</p>
     ${ptag(cuerpo.introduccion || "")}
     ${seccion("HECHOS DETECTADOS / IMPUTADOS", cuerpo.hechosDetectados, evidenciasHTML)}
-    ${seccion("TIPIFICACIÓN DE LAS FALTAS / NORMATIVA PRESUNTAMENTE VULNERADA", cuerpo.tipificacion)}
+    ${cuerpo.tipificacion ? `<p style="margin-top:14px;font-weight:700;">TIPIFICACIÓN DE LAS FALTAS / NORMATIVA PRESUNTAMENTE VULNERADA</p>${podTipificacionHTML(cuerpo.tipificacion, ptag)}` : ""}
     ${mp.length ? `<p style="margin-top:14px;font-weight:700;">MEDIOS PROBATORIOS QUE SUSTENTAN LOS HECHOS DESCRITOS</p><ul style="margin:4px 0 0 18px;padding:0;">${mp.map(m => `<li>${escapeHtml(m)}</li>`).join("")}</ul>` : ""}
     ${seccion("CONCLUSIÓN PRELIMINAR", cuerpo.conclusionPreliminar)}
     ${seccion("PLAZO PARA PRESENTAR DESCARGOS", cuerpo.plazoDescargos)}
