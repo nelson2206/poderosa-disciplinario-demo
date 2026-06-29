@@ -40,6 +40,10 @@ export type JefeMatch = {
   correoJefe: string | null;
   gerente: string;
   correoGerente: string | null;
+  /** true cuando el nombre no calzó exacto/substring y se resolvió por similitud. */
+  aproximado?: boolean;
+  /** Similitud 0..1 cuando es un match aproximado (mayor = más probable). */
+  score?: number;
 };
 
 let cache: EmpleadoOrg[] | null = null;
@@ -112,6 +116,83 @@ async function load(): Promise<EmpleadoOrg[]> {
   return [];
 }
 
+// ---- Coincidencia difusa (cuando no hay match exacto/substring) ----
+
+/** Distancia de edición Levenshtein (para tolerar typos y letras cambiadas). */
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  let curr = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+/** Similitud por bigramas (coeficiente de Sørensen–Dice), 0..1. */
+function diceBigrams(a: string, b: string): number {
+  const bigrams = (s: string): Map<string, number> => {
+    const m = new Map<string, number>();
+    const t = s.replace(/\s+/g, "");
+    for (let i = 0; i < t.length - 1; i++) {
+      const bg = t.slice(i, i + 2);
+      m.set(bg, (m.get(bg) || 0) + 1);
+    }
+    return m;
+  };
+  const A = bigrams(a);
+  const B = bigrams(b);
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  for (const [bg, ca] of A) inter += Math.min(ca, B.get(bg) || 0);
+  let total = 0;
+  for (const c of A.values()) total += c;
+  for (const c of B.values()) total += c;
+  return (2 * inter) / total;
+}
+
+/**
+ * Puntúa qué tan probable es que `cand` (nombre del directorio) sea el match de
+ * `q` (lo que escribió el usuario). Combina solape de tokens (apellidos/nombres
+ * en cualquier orden, tolerante a typos) con la similitud global por bigramas.
+ * Devuelve 0..1.
+ */
+function fuzzyScore(q: string, cand: string): number {
+  const qt = q.split(" ").filter(Boolean);
+  const ct = cand.split(" ").filter(Boolean);
+  if (!qt.length || !ct.length) return 0;
+
+  // Para cada token de la query, el mejor token del candidato (exacto, prefijo,
+  // o cercano por edición). Premia que cada palabra de la query exista.
+  let acumulado = 0;
+  for (const t of qt) {
+    let mejor = 0;
+    for (const c of ct) {
+      let s: number;
+      if (t === c) s = 1;
+      else if (c.startsWith(t) || t.startsWith(c)) s = 0.9;
+      else {
+        const d = levenshtein(t, c);
+        const max = Math.max(t.length, c.length);
+        s = max ? 1 - d / max : 0; // 1 = igual, 0 = totalmente distinto
+      }
+      if (s > mejor) mejor = s;
+    }
+    acumulado += mejor;
+  }
+  const tokenScore = acumulado / qt.length;
+  const dice = diceBigrams(q, cand);
+  // El solape de tokens manda; los bigramas desempatan y captan transposiciones.
+  return tokenScore * 0.7 + dice * 0.3;
+}
+
 function toMatch(e: EmpleadoOrg): JefeMatch {
   return {
     trabajador: e.nombre,
@@ -149,7 +230,17 @@ export async function buscarOrganigrama(q: string, limit = 8): Promise<JefeMatch
   const ordenado = [...empieza, ...incluye, ...porTokens];
   const vistos = new Set<string>();
   const unicos = ordenado.filter((e) => (vistos.has(e.n) ? false : (vistos.add(e.n), true)));
-  return unicos.slice(0, limit).map(toMatch);
+  if (unicos.length) return unicos.slice(0, limit).map(toMatch);
+
+  // Fallback difuso: ningún match exacto/substring → rankear TODO el directorio
+  // por similitud y devolver los más probables. Umbral para evitar basura.
+  const UMBRAL = 0.45;
+  const puntuados = dir
+    .map((e) => ({ e, s: fuzzyScore(nq, e.nombreNorm) }))
+    .filter((x) => x.s >= UMBRAL)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, limit);
+  return puntuados.map((x) => ({ ...toMatch(x.e), aproximado: true, score: Math.round(x.s * 100) / 100 }));
 }
 
 export async function organigramaInfo(): Promise<{ total: number; fuente: string }> {
