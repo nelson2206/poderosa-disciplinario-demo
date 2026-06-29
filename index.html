@@ -112,6 +112,15 @@ button:focus-visible, .nav-item:focus-visible, .tab:focus-visible, .action-btn:f
 .content{padding:26px 32px 40px}
 .view{display:none}
 .view.active{display:block}
+/* Barra de progreso animada para análisis con IA */
+.pod-prog-label{font-size:11.5px;color:var(--gray-muted);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.pod-prog-label::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--gold);animation:podPulse 1s ease-in-out infinite;}
+.pod-prog-track{height:8px;background:var(--cream-dark,#e8ddc4);border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.08);}
+.pod-prog-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));background-size:200% 100%;animation:podShimmer 1.3s linear infinite;transition:width .3s cubic-bezier(.22,1,.36,1);}
+.pod-prog-fill.ok{background:var(--green);animation:none;}
+.pod-prog-fill.err{background:var(--terracotta);animation:none;}
+@keyframes podShimmer{0%{background-position:200% 0}100%{background-position:0 0}}
+@keyframes podPulse{0%,100%{transform:scale(.7);opacity:.5}50%{transform:scale(1);opacity:1}}
 
 .greeting h1{font-family:var(--font-head);font-size:26px;color:var(--teal);margin:0 0 6px;letter-spacing:-.3px}
 .greeting p{margin:0;color:var(--gray-muted);font-size:14px}
@@ -1539,9 +1548,9 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
             <div class="desc">La carta se actualiza en vivo según los datos elegidos.</div>
 
             <div class="field readonly"><label>Caso</label><input id="c2-caso-label" value="CD-2026-047 · Juan Pérez Rojas" readonly></div>
-            <div class="field"><label for="c2-buscar-colab">Buscar colaborador (trae su imputación previa)</label>
+            <div class="field"><label for="c2-buscar-colab">Buscar colaborador por nombre o DNI (trae su imputación previa)</label>
               <div style="display:flex;gap:8px;">
-                <input id="c2-buscar-colab" type="text" placeholder="Nombre del trabajador imputado…" style="flex:1;">
+                <input id="c2-buscar-colab" type="text" placeholder="Nombre o DNI del trabajador imputado…" style="flex:1;">
                 <button class="btn" id="c2-buscar-btn" type="button" style="font-size:12px;white-space:nowrap;">Buscar</button>
               </div>
               <select id="c2-buscar-result" style="display:none;width:100%;margin-top:6px;font-size:12px;"></select>
@@ -2905,7 +2914,7 @@ async function generateCarta2WithAI() {
   btn.disabled = true;
   const originalLabel = btn.textContent;
   btn.textContent = "⏳ Redactando…";
-  setC2Status("Llamando a ChatGPT para redactar la Carta 2…");
+  const prog = podStartProgress("c2-ai-status", "Redactando la decisión final con análisis del descargo…", 38000);
   showC2Warnings([]);
   try {
     const input = gatherCarta2Input();
@@ -2919,16 +2928,16 @@ async function generateCarta2WithAI() {
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     const carta = data.carta;
     if (carta.refused) {
-      setC2Status(`Solicitud rechazada por el modelo: ${carta.refusedReason || "sin motivo"}`, "error");
+      prog.fail(`Solicitud rechazada por el modelo: ${carta.refusedReason || "sin motivo"}`);
       return;
     }
     hydrateCarta2Preview(carta, tipoLabel);
     showC2Warnings(carta.warnings);
     const usedTpl = data.templateUsed ? ` · plantilla base: "${data.templateUsed.label}"` : " · plantilla canónica";
-    setC2Status(`Borrador generado en ${data.elapsedMs} ms${usedTpl} — revisa con Legal antes de enviar a aprobación.`, "ok");
+    prog.done(`✓ Borrador generado en ${(data.elapsedMs/1000).toFixed(1)} s${usedTpl} — revisa con Legal.`);
     if (typeof showToast === "function") showToast(`Carta 2 (${tipoLabel}) redactada con IA — pendiente revisión Legal`);
   } catch (err) {
-    setC2Status(`Error: ${err.message}`, "error");
+    prog.fail(`Error: ${err.message}`);
   } finally {
     btn.disabled = false;
     btn.textContent = originalLabel;
@@ -2979,16 +2988,21 @@ document.getElementById("c2-buscar-btn")?.addEventListener("click", async () => 
   const sel = document.getElementById("c2-buscar-result");
   const q = (document.getElementById("c2-buscar-colab")?.value || "").trim();
   const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-  if (q.length < 2) { if(st){ st.textContent="Escribe al menos 2 letras del nombre."; st.style.color="var(--terracotta)"; } return; }
+  if (q.length < 2) { if(st){ st.textContent="Escribe al menos 2 caracteres (nombre o DNI)."; st.style.color="var(--terracotta)"; } return; }
   if (st) { st.textContent="Buscando en el historial…"; st.style.color="var(--gray-muted)"; }
   try {
     const res = await podFetch(`${AI_API_BASE}/api/cartas?tipo=carta1&limit=200`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     const nq = norm(q);
-    c2BuscarCartas = (data.cartas || []).filter(c => norm(c.trabajadorNombre).includes(nq));
+    const dq = q.replace(/\D/g, ""); // dígitos de la query (para DNI)
+    c2BuscarCartas = (data.cartas || []).filter(c => {
+      const porNombre = norm(c.trabajadorNombre).includes(nq);
+      const porDni = dq.length >= 4 && String(c.trabajadorDni || "").replace(/\D/g, "").includes(dq);
+      return porNombre || porDni;
+    });
     if (!c2BuscarCartas.length) { sel.style.display="none"; if(st){ st.textContent=`Sin imputaciones para "${q}" en el historial.`; st.style.color="var(--terracotta)"; } return; }
-    sel.innerHTML = `<option value="">— ${c2BuscarCartas.length} imputación(es) — elige una —</option>` + c2BuscarCartas.map((c,i)=>`<option value="${i}">${escapeHtml(c.trabajadorNombre)} · ${escapeHtml(c.caseId||"")} · ${escapeHtml((c.generatedAt||"").slice(0,10))}</option>`).join("");
+    sel.innerHTML = `<option value="">— ${c2BuscarCartas.length} imputación(es) — elige una —</option>` + c2BuscarCartas.map((c,i)=>`<option value="${i}">${escapeHtml(c.trabajadorNombre)}${c.trabajadorDni?` · DNI ${escapeHtml(c.trabajadorDni)}`:""} · ${escapeHtml(c.caseId||"")} · ${escapeHtml((c.generatedAt||"").slice(0,10))}</option>`).join("");
     sel.style.display="block";
     if (st) { st.textContent=`${c2BuscarCartas.length} encontrada(s). Elige una para cargarla.`; st.style.color="var(--green)"; }
   } catch (err) { if(st){ st.textContent="Error: "+err.message; st.style.color="var(--terracotta)"; } }
@@ -3024,16 +3038,16 @@ if (typeof c2SetBranding === "function") c2SetBranding();
 // Subir el descargo (archivo) → /api/extraer-texto → rellena el textarea c2-descargo
 document.getElementById("c2-descargo-file")?.addEventListener("change", async (e) => {
   const f = e.target.files[0]; if (!f) return;
-  const st = document.getElementById("c2-descargo-status");
-  if (st) { st.style.color = "var(--gray-muted)"; st.textContent = `Extrayendo ${f.name}…`; }
+  const esImg = /^image\//.test(f.type) || /\.(png|jpe?g|webp)$/i.test(f.name);
+  const prog = podStartProgress("c2-descargo-status", esImg ? "Transcribiendo el descargo (imagen) con IA…" : `Extrayendo ${f.name}…`, esImg ? 9000 : 3000);
   try {
     const fd = new FormData(); fd.append("archivo", f);
     const res = await podFetch(`${AI_API_BASE}/api/extraer-texto`, { method: "POST", body: fd });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     document.getElementById("c2-descargo").value = data.texto || "";
-    if (st) { st.style.color = "var(--green)"; st.textContent = `✓ ${data.chars.toLocaleString()} caracteres del descargo cargados. La IA los evaluará.`; }
-  } catch (err) { if (st) { st.style.color = "var(--terracotta)"; st.textContent = "Error: " + err.message; } }
+    prog.done(`✓ ${data.chars.toLocaleString()} caracteres del descargo cargados. La IA los evaluará.`);
+  } catch (err) { prog.fail("Error: " + err.message); }
 });
 
 // Export PDF / Word del preview oficial de Decisión final (#pp2-paper)
@@ -3120,6 +3134,36 @@ function podFooterHTML() {
   return window.POD_PIE_B64
     ? `<div style="margin-top:28px;"><img src="${window.POD_PIE_B64}" alt="" style="width:330px;max-width:100%;display:block;"></div>`
     : "";
+}
+
+// Barra de progreso animada para operaciones de IA (duración estimada; llega al ~95% y
+// se completa al terminar). Devuelve un handle con done(msg) / fail(msg).
+function podStartProgress(statusId, label, estMs) {
+  const el = document.getElementById(statusId);
+  if (!el) return { done(){}, fail(){} };
+  el.style.color = "var(--gray-text)";
+  el.innerHTML = `<div class="pod-prog-label">${escapeHtml(label || "Procesando con IA…")}</div><div class="pod-prog-track"><div class="pod-prog-fill"></div></div>`;
+  const fill = el.querySelector(".pod-prog-fill");
+  const start = performance.now();
+  let raf;
+  const tick = () => {
+    const t = (performance.now() - start) / (estMs || 20000);
+    const pct = 95 * (1 - Math.exp(-2.4 * t)); // se acerca asintóticamente al 95%
+    if (fill) fill.style.width = pct.toFixed(1) + "%";
+    raf = requestAnimationFrame(tick);
+  };
+  tick();
+  const finish = (cls, msg, color) => {
+    cancelAnimationFrame(raf);
+    if (fill) { fill.style.width = "100%"; if (cls) fill.classList.add(cls); }
+    const lbl = el.querySelector(".pod-prog-label");
+    if (lbl && msg) lbl.textContent = msg;
+    if (color) el.style.color = color;
+  };
+  return {
+    done(msg) { finish("ok", msg, "var(--green)"); },
+    fail(msg) { finish("err", msg, "var(--terracotta)"); },
+  };
 }
 
 function populateTemplateSelectors() {
@@ -4017,8 +4061,7 @@ async function ncExtraer() {
   ncExtraerBtn.disabled = true;
   const orig = ncExtraerBtn.textContent;
   ncExtraerBtn.textContent = "⏳ Analizando con IA…";
-  status.style.color = "var(--gray-muted)";
-  status.textContent = "ChatGPT está leyendo la imagen…";
+  const prog = podStartProgress("nc-extraer-status", "La IA está leyendo la imagen…", 7000);
   try {
     const fd = new FormData();
     fd.append("imagen", ncFotoFile);
@@ -4037,12 +4080,10 @@ async function ncExtraer() {
     } else {
       notas.style.display = "none";
     }
-    status.style.color = "var(--green)";
-    status.textContent = `✓ Datos extraídos en ${data.elapsedMs} ms · confianza: ${t.confianza}. Revisa y corrige si hace falta.`;
+    prog.done(`✓ Datos extraídos en ${(data.elapsedMs/1000).toFixed(1)} s · confianza: ${t.confianza}. Revisa y corrige.`);
     window.ncLookupJefe && window.ncLookupJefe();
   } catch (err) {
-    status.style.color = "var(--terracotta)";
-    status.textContent = `Error: ${err.message}`;
+    prog.fail(`Error: ${err.message}`);
   } finally {
     ncExtraerBtn.disabled = false;
     ncExtraerBtn.textContent = orig;
@@ -4092,9 +4133,8 @@ async function ncGenerar() {
   const btn = document.getElementById("nc-generar-btn");
   const status = document.getElementById("nc-generar-status");
   ncGatherIncidente();
-  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Redactando con ChatGPT (30-40s)…";
-  status.style.color = "var(--gray-muted)";
-  status.textContent = "Generando carta con formato Poderosa…";
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = "⏳ Redactando (30-40s)…";
+  const prog = podStartProgress("nc-generar-status", "Redactando la imputación con formato oficial Poderosa…", 38000);
 
   try {
     const caseId = ncState.caseId || `NC-${Date.now().toString().slice(-7)}`;
@@ -4172,13 +4212,11 @@ async function ncGenerar() {
       });
     }
 
-    status.style.color = "var(--green)";
-    status.textContent = `✓ Carta generada en ${data.elapsedMs} ms con formato Poderosa`;
+    prog.done(`✓ Carta generada en ${(data.elapsedMs/1000).toFixed(1)} s con formato Poderosa`);
     ncRenderPaso4();
     ncSetStep(3);
   } catch (err) {
-    status.style.color = "var(--terracotta)";
-    status.textContent = `Error: ${err.message}`;
+    prog.fail(`Error: ${err.message}`);
   } finally {
     btn.disabled = false; btn.textContent = orig;
   }
@@ -4790,8 +4828,8 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     const status=$("nc-analizar-status");
     const texto=($("nc-informe-texto")?.value||"").trim();
     if(!informeFile && texto.length<30){ if(status){status.style.color="var(--terracotta)"; status.textContent="Pega el informe/correos (mín. 30 caracteres) o sube un archivo.";} return; }
-    const btn=$("nc-analizar-btn"); if(!btn) return; btn.disabled=true; const orig=btn.textContent; btn.textContent="⏳ Analizando con IA…";
-    if(status){ status.style.color="var(--gray-muted)"; status.textContent="La IA está leyendo el informe y proponiendo las normas…"; }
+    const btn=$("nc-analizar-btn"); if(!btn) return; btn.disabled=true; const orig=btn.textContent; btn.textContent="⏳ Analizando…";
+    const prog = podStartProgress("nc-analizar-status", informeFile ? "Leyendo el archivo y analizando con IA…" : "La IA está leyendo el informe y proponiendo las normas…", informeFile ? 14000 : 9000);
     try{
       let res;
       if(informeFile){ const fd=new FormData(); fd.append("archivo", informeFile); res=await podFetch(`${AI_API_BASE}/api/cartas/analizar-informe`, { method:"POST", body:fd }); }
@@ -4800,8 +4838,8 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
       if(!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
       aplicarAnalisis(data.analisis||{});
       renderResumen(data.analisis||{});
-      if(status){ status.style.color="var(--green)"; status.textContent=`✓ Análisis listo en ${data.elapsedMs} ms. Revisa los campos y el resumen de normas abajo.`; }
-    }catch(err){ if(status){ status.style.color="var(--terracotta)"; status.textContent="Error: "+err.message; } }
+      prog.done(`✓ Análisis listo en ${(data.elapsedMs/1000).toFixed(1)} s. Revisa los campos y el resumen abajo.`);
+    }catch(err){ prog.fail("Error: "+err.message); }
     finally{ btn.disabled=false; btn.textContent=orig; }
   }
   $("nc-analizar-btn")?.addEventListener("click", analizar);
@@ -4815,18 +4853,18 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
   if (!fileInput) return;
   fileInput.addEventListener("change", async () => {
     const f = fileInput.files[0]; if (!f) return;
-    const status = document.getElementById("nc-proc-status");
     const ta = document.getElementById("nc-proc-texto");
-    status.style.color = "var(--gray-muted)"; status.textContent = `Extrayendo texto de ${f.name}…`;
+    const esImg = /^image\//.test(f.type) || /\.(png|jpe?g|webp)$/i.test(f.name);
+    const prog = podStartProgress("nc-proc-status", esImg ? "Transcribiendo el procedimiento (imagen) con IA…" : `Extrayendo texto de ${f.name}…`, esImg ? 9000 : 3000);
     try {
       const fd = new FormData(); fd.append("archivo", f);
       const res = await podFetch(`${AI_API_BASE}/api/extraer-texto`, { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       ta.value = data.texto || "";
-      status.style.color = "var(--green)"; status.textContent = `✓ ${data.chars.toLocaleString()} caracteres extraídos de ${data.filename}. Revisa/edita arriba.`;
+      prog.done(`✓ ${data.chars.toLocaleString()} caracteres extraídos de ${data.filename}. Revisa/edita arriba.`);
     } catch (err) {
-      status.style.color = "var(--terracotta)"; status.textContent = "Error: " + err.message;
+      prog.fail("Error: " + err.message);
     }
   });
 })();
