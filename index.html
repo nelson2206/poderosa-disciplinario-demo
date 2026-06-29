@@ -1768,9 +1768,9 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
                 <div>
                   <div style="font-family:var(--font-head);font-size:10.5px;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">Opción B · Ingreso manual / revisión</div>
                   <div class="field"><label for="nc-trab-nombre">Nombre completo</label><input id="nc-trab-nombre" type="text" placeholder="Juan Pérez Rojas"></div>
-                  <div class="field"><label for="nc-trab-dni">DNI (8 dígitos)</label><input id="nc-trab-dni" type="text" placeholder="70 234 567"></div>
+                  <input id="nc-trab-dni" type="hidden">
                   <div class="field"><label for="nc-trab-puesto">Puesto</label><input id="nc-trab-puesto" type="text" placeholder="Operador de flotación"></div>
-                  <div class="field"><label for="nc-trab-unidad">Unidad</label>
+                  <div class="field"><label for="nc-trab-unidad">Unidad / mina <span style="font-weight:400;color:var(--gray-muted);font-size:11px;">(opcional)</span></label>
                     <select id="nc-trab-unidad">
                       <option value="">—</option>
                       <option>Marañón</option>
@@ -2785,7 +2785,11 @@ const CAT_TO_C2LABEL = {
 };
 function c2UpdateCaseHeader() {
   const el = document.getElementById("c2-caso-label");
-  if (el && c2State && c2State.caso) { const t = c2State.trabajador || {}; el.value = `${c2State.caso} · ${t.nombre || "—"}`; }
+  if (el && c2State && c2State.caso) {
+    const t = c2State.trabajador || {};
+    const imp = c2State.carta1 && c2State.carta1.numero ? ` · vinculada a imputación ${c2State.carta1.numero}` : "";
+    el.value = `${c2State.caso} · ${t.nombre || "—"}${imp}`;
+  }
 }
 function applyC2Recomendacion(rec) {
   if (!rec || !rec.categoria) return;
@@ -2868,14 +2872,14 @@ function gatherCarta2Input() {
   // Datos del caso: del c2State (cargado desde la imputación / un caso) o demo por defecto.
   const cs = (typeof c2State !== "undefined" && c2State) ? c2State : null;
   const t = (cs && cs.trabajador) || {};
-  const unidad = t.unidad || "Marañón";
+  const unidad = (t.unidad || "").trim();
   const input = {
     caseId: (cs && cs.caso) || "CD-2026-047",
     trabajador: cs && cs.trabajador ? {
       nombre: t.nombre || "—",
-      dni: t.dni || "—",
-      puestoUnidad: t.puestoUnidad || `${t.puesto || "—"} — Unidad ${unidad}`,
-      unidad: unidad
+      dni: t.dni || "",
+      puestoUnidad: t.puestoUnidad || `${t.puesto || "—"}${unidad ? ` — Unidad ${unidad}` : ""}`,
+      unidad: unidad || undefined
     } : {
       nombre: "Juan Pérez Rojas",
       dni: "70 234 567",
@@ -2889,9 +2893,7 @@ function gatherCarta2Input() {
     hechosImputados: (cs && cs.hechosImputados) || "Ingreso al área operativa de flotación sin respirador, el 28/04/2026 a las 14:30, observado por el supervisor de turno.",
     evaluacion: evaluacion,
     normaAplicada: norma,
-    firma: tipo === "carta2-amonestacion" || tipo === "desistimiento"
-      ? { nombre: "María Salas Rivera", cargo: "Jefa de RR.HH. — Unidad Marañón" }
-      : { nombre: "Carlos Ramírez Ortega", cargo: "Superintendente — Unidad Marañón" },
+    firma: { nombre: "Perci Alvarado Arteaga", cargo: "Superintendencia de Recursos Humanos" },
     numeroCarta: "RH-CD-2026-047/02",
     fechaCartaISO: today,
     templateId: templateId || undefined
@@ -3022,7 +3024,7 @@ document.getElementById("c2-buscar-result")?.addEventListener("change", async (e
     const snap = {
       caso: rec.caseId,
       trabajador: { nombre: tr.nombre || rec.trabajadorNombre || "—", dni: tr.dni || rec.trabajadorDni || "—", unidad, puestoUnidad: tr.puestoUnidad || `${tr.puesto||"—"} — Unidad ${unidad}` },
-      carta1: { numero: out.numeroCarta || inp.numeroCarta || "", fechaISO: (rec.generatedAt || "").slice(0,10) },
+      carta1: { id: summary.id, numero: out.numeroCarta || inp.numeroCarta || "", fechaISO: (rec.generatedAt || "").slice(0,10) },
       hechosImputados: inp.conducta || (out.cuerpo && (out.cuerpo.hechosDetectados || out.cuerpo.hechosImputados)) || "",
       sancionRecomendada: ls.sancionRecomendada || null
     };
@@ -3316,8 +3318,8 @@ function renderHistorial(cartas) {
     return `
       <tr>
         <td style="font-size:11px;color:var(--gray-muted);">${formatDate(c.generatedAt)}</td>
-        <td><strong>${escapeHtml(c.caseId)}</strong></td>
-        <td>${escapeHtml(c.trabajadorNombre)}<br><span style="font-size:10.5px;color:var(--gray-muted);">${escapeHtml(c.unidad)} · DNI ${escapeHtml(c.trabajadorDni)}</span></td>
+        <td><strong><a href="#" data-h-caso="${escapeHtml(c.caseId)}" style="color:var(--teal);text-decoration:none;" title="Ver todas las cartas de este caso (imputación + decisión final)">${escapeHtml(c.caseId)}</a></strong></td>
+        <td>${escapeHtml(c.trabajadorNombre)}${(c.unidad||c.trabajadorDni)?`<br><span style="font-size:10.5px;color:var(--gray-muted);">${[escapeHtml(c.unidad||""), c.trabajadorDni?("DNI "+escapeHtml(c.trabajadorDni)):""].filter(Boolean).join(" · ")}</span>`:""}</td>
         <td>${tipo}${warnPill}</td>
         <td style="font-size:11px;">${tpl}</td>
         <td><span style="font-size:10.5px;font-family:var(--font-head);letter-spacing:1px;color:white;background:${estadoColor};padding:3px 8px;border-radius:10px;text-transform:uppercase;">${c.estado}</span></td>
@@ -3341,6 +3343,11 @@ function renderHistorial(cartas) {
       </tr>
     `;
   }).join("");
+  tbody.querySelectorAll("[data-h-caso]").forEach(a => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    const hc = document.getElementById("h-case");
+    if (hc) { hc.value = a.dataset.hCaso; refreshHistorial && refreshHistorial(); }
+  }));
   tbody.querySelectorAll("[data-h-load]").forEach(b => b.addEventListener("click", () => loadCartaInPreview(b.dataset.hLoad)));
   tbody.querySelectorAll("[data-h-estado]").forEach(s => s.addEventListener("change", () => updateCartaEstado(s.dataset.hEstado, s.value)));
   tbody.querySelectorAll("[data-h-rate]").forEach(b => b.addEventListener("click", () => updateCartaFeedback(b.dataset.hRate, { rating: Number(b.dataset.hRateValue) })));
@@ -4142,11 +4149,12 @@ async function ncGenerar() {
 
     // Construir input enriquecido con datos del informe + PETS + evidencias
     const inf = ncState.incidente;
+    const _unidad = (ncState.trabajador.unidad || "").trim();
     const trabPayload = {
       nombre: ncState.trabajador.nombre || "—",
-      dni: ncState.trabajador.dni || "—",
-      puestoUnidad: `${ncState.trabajador.puesto || "—"} — Unidad ${ncState.trabajador.unidad || "—"}`,
-      unidad: ncState.trabajador.unidad || "Marañón"
+      dni: ncState.trabajador.dni || "",
+      puestoUnidad: `${ncState.trabajador.puesto || "—"}${_unidad ? ` — Unidad ${_unidad}` : ""}`,
+      unidad: _unidad || undefined
     };
     const numerales = (inf.petsNumerales || "").split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
 
