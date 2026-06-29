@@ -260,7 +260,7 @@ button:focus-visible, .nav-item:focus-visible, .tab:focus-visible, .action-btn:f
 .field textarea{min-height:65px;resize:vertical;line-height:1.5}
 .field.readonly input{background:var(--gray-bg);color:var(--gray-muted)}
 
-.preview-paper{background:var(--white);border:1px solid var(--gray-line);border-radius:10px;padding:42px 50px;font-family:"Times New Roman",Times,serif;color:#222;font-size:13px;line-height:1.55;min-height:680px;position:relative;box-shadow:var(--shadow-sm)}
+.preview-paper{background:var(--white);border:1px solid var(--gray-line);border-radius:10px;padding:46px 100px 30px 44px;font-family:"Times New Roman",Times,serif;color:#222;font-size:13px;line-height:1.55;min-height:680px;position:relative;box-shadow:var(--shadow-sm)}
 .preview-paper::before{content:"VISTA PREVIA · LIVE";position:absolute;top:12px;right:16px;font-family:var(--font-head);font-size:9px;color:var(--gold);letter-spacing:2px}
 .letterhead{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);padding-bottom:14px;margin-bottom:22px}
 .letterhead img{width:130px;height:auto}
@@ -3050,7 +3050,7 @@ function c2ExportName(ext){ return `Decision-final-${String((c2State&&c2State.ca
 document.getElementById("c2-export-pdf")?.addEventListener("click", () => {
   const node = document.getElementById("pp2-paper");
   if (!node || typeof html2pdf === "undefined") { alert("Genera la carta primero (o espera a que cargue html2pdf)."); return; }
-  html2pdf().set({ margin:[12,12,12,12], filename:c2ExportName("pdf"), image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} }).from(node).save();
+  html2pdf().set({ margin:[13,13,10,28], filename:c2ExportName("pdf"), image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} }).from(node).save();
 });
 document.getElementById("c2-export-docx")?.addEventListener("click", () => {
   const node = document.getElementById("pp2-paper");
@@ -3121,13 +3121,17 @@ function escapeHtml(s) {
 
 // Membrete (logo) y pie de página oficiales de Poderosa — base64 desde assets/poderosa-brand.js.
 function podLetterheadHTML() {
+  // Tamaño exacto del membrete en "Plantilla Medida Disciplinaria.docx":
+  // image2 (467×94 px nativo) se renderiza a 233×47 px, arriba a la izquierda.
   return window.POD_LOGO_B64
-    ? `<div style="margin-bottom:16px;"><img src="${window.POD_LOGO_B64}" alt="PODEROSA" style="height:40px;display:block;"></div>`
+    ? `<div style="margin-bottom:18px;"><img src="${window.POD_LOGO_B64}" alt="PODEROSA" style="width:233px;height:auto;display:block;"></div>`
     : `<div style="font-family:var(--font-head);color:var(--gold);font-size:22px;margin-bottom:14px;">PODEROSA</div>`;
 }
 function podFooterHTML() {
+  // Banda de pie exacta del template: image5 (613×120 px nativo) a 490×96 px,
+  // alineada a la izquierda al pie de la página (como en el .docx).
   return window.POD_PIE_B64
-    ? `<div style="margin-top:28px;"><img src="${window.POD_PIE_B64}" alt="" style="width:330px;max-width:100%;display:block;"></div>`
+    ? `<div style="margin-top:34px;"><img src="${window.POD_PIE_B64}" alt="" style="width:490px;height:auto;max-width:100%;display:block;"></div>`
     : "";
 }
 
@@ -4397,7 +4401,7 @@ document.getElementById("nc-export-pdf")?.addEventListener("click", () => {
   }
   const filename = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.pdf`.replace(/[\/\\?]/g, "-");
   html2pdf().set({
-    margin: [12, 12, 12, 12],
+    margin: [13, 13, 10, 28],
     filename,
     image: { type: "jpeg", quality: 0.95 },
     html2canvas: { scale: 2, useCORS: true },
@@ -4606,7 +4610,7 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
 
   // ---------- PDF del preview → base64 ----------
   async function previewPdfBase64(node){
-    const opt = { margin:[12,12,12,12], image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} };
+    const opt = { margin:[13,13,10,28], image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} };
     const blob = await html2pdf().set(opt).from(node).outputPdf("blob");
     const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(blob); });
     return base64;
