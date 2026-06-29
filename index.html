@@ -10,6 +10,8 @@
 <meta name="poderosa-token-inline" content="__POD_API_TOKEN__">
 <!-- Biblioteca para exportar el preview de carta a PDF (cliente-side, sin servidor adicional) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+<!-- Biblioteca para exportar a .docx REAL (OOXML), no .doc (HTML) -->
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script src="assets/poderosa-brand.js"></script>
 <title>Sistema de Gestión Disciplinaria — Compañía Minera Poderosa</title>
 <meta name="description" content="Aplicativo interno de Compañía Minera Poderosa para la gestión de medidas disciplinarias conforme al TUO D.L. 728. Trazabilidad lista para SUNAFIL.">
@@ -3129,11 +3131,7 @@ document.getElementById("c2-export-pdf")?.addEventListener("click", () => {
 document.getElementById("c2-export-docx")?.addEventListener("click", () => {
   const node = document.getElementById("pp2-paper");
   if (!node) return;
-  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Decisión final</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}</style></head><body>${node.innerHTML}</body></html>`;
-  const blob = new Blob(["﻿"+html], { type: "application/msword" });
-  const url = URL.createObjectURL(blob); const a = document.createElement("a");
-  a.href = url; a.download = c2ExportName("doc"); document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  podExportDocx(node, c2ExportName("docx")).catch(err => alert("No se pudo generar el Word: " + err.message));
 });
 
 // ====== Biblioteca de plantillas ======
@@ -3223,6 +3221,101 @@ async function podExportPdf(node, { filename, returnBlob } = {}) {
   } finally {
     wrap.remove();
   }
+}
+
+// data:image/png;base64,XXXX → { bytes, type } para incrustar en el .docx
+function podDataUrlToImage(dataUrl) {
+  const m = /^data:image\/([a-z+]+);base64,(.*)$/i.exec(String(dataUrl) || "");
+  if (!m) return null;
+  const type = m[1].toLowerCase() === "jpeg" ? "jpg" : m[1].toLowerCase();
+  const bin = atob(m[2]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return { bytes, type };
+}
+
+// Exporta la hoja de carta a un .docx REAL (OOXML) parseando el preview:
+// conserva negritas, alineación, viñetas, sangría de citas e incrusta el logo,
+// el pie y las evidencias como imágenes nativas. A4 + márgenes de la plantilla.
+async function podExportDocx(node, filename, returnBlob) {
+  if (!node) throw new Error("Genera la carta primero.");
+  const D = window.docx;
+  if (!D) throw new Error("La librería .docx aún se está cargando. Reintenta en 1-2 segundos.");
+  const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } = D;
+
+  const imgPara = (img) => {
+    const info = podDataUrlToImage(img.src);
+    if (!info) return null;
+    const pctW = (img.style.width || "").includes("%");
+    let w = (!pctW && parseInt(img.style.width)) || img.naturalWidth || 240;
+    if (pctW) w = Math.min(img.naturalWidth || 460, 460);
+    const ratio = img.naturalWidth ? img.naturalHeight / img.naturalWidth : 0.3;
+    const h = parseInt(img.style.height) || Math.round(w * ratio);
+    return new Paragraph({ children: [new ImageRun({ type: info.type, data: info.bytes, transformation: { width: w, height: h } })], spacing: { after: 120 } });
+  };
+
+  const inlineRuns = (el, baseBold) => {
+    const runs = [];
+    const walk = (n, bold) => {
+      n.childNodes.forEach((ch) => {
+        if (ch.nodeType === 3) {
+          if (ch.textContent) runs.push(new TextRun({ text: ch.textContent, bold }));
+        } else if (ch.nodeType === 1) {
+          if (ch.tagName === "BR") runs.push(new TextRun({ text: "", break: 1 }));
+          else {
+            const fw = ch.style && ch.style.fontWeight;
+            const b = bold || ch.tagName === "STRONG" || ch.tagName === "B" || fw === "700" || fw === "bold";
+            walk(ch, b);
+          }
+        }
+      });
+    };
+    walk(el, baseBold);
+    return runs.length ? runs : [new TextRun({ text: el.textContent || "", bold: baseBold })];
+  };
+
+  const paras = [];
+  const pushBlock = (el, inheritIndent) => {
+    if (el.nodeType !== 1) return;
+    const tag = el.tagName;
+    if (tag === "IMG") { const p = imgPara(el); if (p) paras.push(p); return; }
+    if (tag === "P") {
+      const ta = el.style.textAlign;
+      const align = ta === "right" ? AlignmentType.RIGHT : ta === "center" ? AlignmentType.CENTER : AlignmentType.LEFT;
+      const baseBold = el.style.fontWeight === "700" || el.style.fontWeight === "bold";
+      const ind = (parseInt(el.style.marginLeft) || 0) + (inheritIndent || 0);
+      paras.push(new Paragraph({ children: inlineRuns(el, baseBold), alignment: align, spacing: { after: 160 }, indent: ind ? { left: Math.round(ind * 15) } : undefined }));
+      return;
+    }
+    if (tag === "UL" || tag === "OL") {
+      el.querySelectorAll(":scope > li").forEach((li) => paras.push(new Paragraph({ children: inlineRuns(li, false), bullet: { level: 0 }, spacing: { after: 80 } })));
+      return;
+    }
+    if (tag === "DIV") {
+      const childIndent = (inheritIndent || 0) + (parseInt(el.style.marginLeft) || 0);
+      el.childNodes.forEach((c) => {
+        if (c.nodeType === 1 && c.tagName === "IMG") { const p = imgPara(c); if (p) paras.push(p); }
+        else pushBlock(c, childIndent);
+      });
+      return;
+    }
+    el.childNodes.forEach((c) => pushBlock(c, inheritIndent));
+  };
+  node.childNodes.forEach((c) => pushBlock(c, 0));
+
+  const doc = new Document({
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 720, right: 1700, bottom: 720, left: 708 } } },
+      children: paras.length ? paras : [new Paragraph("")]
+    }],
+    styles: { default: { document: { run: { font: "Calibri", size: 22 } } } }
+  });
+  const blob = await Packer.toBlob(doc);
+  if (returnBlob) return blob;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 // Renderiza la TIPIFICACIÓN agrupando las citas bajo los tres encabezados
@@ -4552,14 +4645,8 @@ document.getElementById("nc-export-pdf")?.addEventListener("click", () => {
 document.getElementById("nc-export-docx")?.addEventListener("click", () => {
   const root = document.getElementById("nc-preview-paper");
   if (!root || !ncState.cartaOutput) return;
-  const html = `<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Carta</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;}p{margin:0 0 8pt;}mark{background:transparent;}</style></head><body>${root.innerHTML}</body></html>`;
-  const blob = new Blob(["﻿" + html], { type: "application/msword" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.doc`.replace(/[\/\\?]/g, "-");
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const filename = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.docx`.replace(/[\/\\?]/g, "-");
+  podExportDocx(root, filename).catch(err => alert("No se pudo generar el Word: " + err.message));
 });
 
 // ====== Guardar en historial (re-llama el endpoint para que persista la versión editada) ======
