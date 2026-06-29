@@ -258,6 +258,35 @@ async function chatJSON(opts: {
   return { text, usage: extractUsage(opts.model, response) };
 }
 
+// Núcleo normativo del RIT que el área de RR.HH. cita SIEMPRE en las imputaciones
+// (marco disciplinario general). Texto literal validado por el cliente.
+const NUCLEO_RIT = [
+  "Reglamento Interno de Trabajo (RIT):",
+  '"Artículo 3°.- Para efectos de su exigencia y cumplimiento, así como del pleno conocimiento de sus derechos y obligaciones, a cada colaborador se le hará entrega de un ejemplar del RIT (…), comprometiéndose a respetar y cumplir las normas establecidas en este, así como las disposiciones verbales y escritas que de ellas se deriven."',
+  '"Artículo 62°.- Son obligaciones de los colaboradores de PODEROSA, cumplir con las siguientes normas: 1. Cumplir con la política del Sistema Integrado de Seguridad, Salud Ocupacional, Medio Ambiente y Calidad de PODEROSA. (…) 3. Cumplir y observar fielmente las normas, directivas, procedimientos, Código de Ética y Conducta vigente en la empresa. (…) 5. Acatar y cumplir las órdenes y directivas que por razones de trabajo sean impartidas por sus jefes y/o Superiores."',
+  '"Artículo 63°.- Queda expresamente prohibido a los colaboradores, sujeto a las sanciones previstas en las disposiciones legales y reglamentarias, las siguientes acciones: (…) w) Incumplir las normas de carácter legal o internas de PODEROSA que imponen a los colaboradores determinadas conductas y obligaciones, incluyendo los contenidos en este reglamento."',
+  '"Artículo 67°.- Es función de PODEROSA velar por la disciplina como condición necesaria e indispensable para el normal y eficiente desenvolvimiento del trabajo; para tal fin se han establecido las normas, procedimientos y medidas disciplinarias que se indican en el presente RIT."',
+  '"Artículo 69°.- Las faltas en el trabajo están constituidas por aquellas acciones u omisiones del colaborador que implican violación de sus obligaciones en perjuicio de la seguridad, producción, productividad, disciplina y armonía en el centro de trabajo (…). También constituyen faltas en el trabajo, el incumplimiento o inobservancia de las normas, directivas, procedimientos y del Código de Ética y Conducta vigente en la empresa."',
+  '"Artículo 70°.- Las medidas disciplinarias son las siguientes: a) Amonestación verbal. b) Amonestación escrita. c) Suspensión. d) Despido."',
+  '"Artículo 72°.- Las sanciones serán impuestas teniendo en cuenta lo siguiente: a) Naturaleza y gravedad de la falta; b) Antecedentes disciplinarios del colaborador; (…) e) Código de Ética y Conducta; (…) g) Reiteración de la falta; h) Disposiciones legales vigentes."',
+  '"Artículo 74°.- Amonestación escrita, es la medida correctiva aplicable cuando hay reincidencia en faltas primarias o en las que revisten relativa gravedad (…). También aplica a las faltas en el trabajo por incumplimiento o inobservancia de las normas, directivas, procedimientos y del Código de Ética y Conducta vigente en la empresa."',
+  '"Artículo 75°.- Serán amonestados en forma verbal o escrita los servidores que incurren en las siguientes faltas (…): c) No cumplir con las disposiciones de Seguridad e Higiene Minera que sean leves; (…) e) No cumplir con las disposiciones emanadas de este RIT y que sean consideradas de carácter leve."',
+  "",
+  "Reglamento Interno de Seguridad y Salud Ocupacional (RISSO):",
+  '"Numeral 6.- No obedecer el RISSO genera falta por los colaboradores y se aplicarán las sanciones de acuerdo al Reglamento Interno de Trabajo."',
+  '"Numeral 8.- Son obligaciones de los supervisores de área: (…) b. Verificar que los colaboradores cumplan con el RISSO y procedimientos de trabajo realizando el seguimiento a la Disciplina Operativa en sus 4 etapas: disponibilidad, calidad, comunicación y cumplimiento, liderando y predicando con el ejemplo. (…) h. Verificar que las empresas contratistas mineras, conexas y otras cumplan con la política de seguridad y salud en el trabajo. (…) r. Realizar las observaciones de seguridad STOP en su área de responsabilidad, debiendo participar en los entrenamientos y cumplir con los programas establecidos."',
+].join("\n");
+
+function nucleoRitBlock(): string {
+  return [
+    "",
+    "## Núcleo normativo OBLIGATORIO del RIT (citar SIEMPRE)",
+    "Estos artículos del marco disciplinario general de Poderosa deben citarse SIEMPRE (texto literal, el RIT primero), ADEMÁS de los artículos específicos del caso que aparezcan en la base normativa. No los omitas:",
+    NUCLEO_RIT,
+    "",
+  ].join("\n");
+}
+
 // Sustento normativo (RAG estricto): los extractos recuperados de los reglamentos
 // de Poderosa son la ÚNICA fuente válida de citas legales.
 function normativaBlock(hits?: NormativaExtracto[]): string {
@@ -357,6 +386,7 @@ export async function generateCarta1(
     "",
     "## Plantilla canónica (referencia mínima de Legal)",
     plantilla,
+    nucleoRitBlock(),
     plantillaClienteBlock(options.plantillaClienteTexto, options.plantillaClienteLabel),
     exemplaryBlock(options.exemplary),
   ].join("\n");
@@ -657,7 +687,7 @@ const ANALISIS_PREFIX = [
   "- `unidad` solo puede ser exactamente \"Marañón\", \"Santa María\" o \"Palca\"; si no consta, null.",
   "- `conducta` debe respetar la presunción de inocencia (es para una Carta 1 de imputación): describe tiempo, lugar, modo y quién observó, sin declarar culpable al trabajador.",
   "- `tipoSugerido` = \"decision-final\" SOLO si el texto evidencia que ya hubo descargo del trabajador o venció su plazo; en otro caso \"carta1\".",
-  "- `normasPropuestas`: cita SOLO artículos/numerales presentes en la 'Base normativa de Poderosa' de abajo (documento + ref exacta), cada uno con un `detalle` de por qué aplica. Si no hay extractos que sustenten el hecho, deja `normasPropuestas` vacío y anótalo en `notas` (que Legal complete el sustento). No cites normas externas que no aparezcan en los extractos.",
+  "- `normasPropuestas`: incluye SIEMPRE los artículos del 'Núcleo normativo OBLIGATORIO del RIT' (Art. 3°, 62°, 63°w, 67°, 69°, 70°, 72°, 74°, 75° y RISSO 6, 8) más los artículos específicos del caso presentes en la 'Base normativa de Poderosa' (documento + ref exacta), cada uno con un `detalle` de por qué aplica. La mayoría deben ser del RIT. No cites normas externas que no aparezcan en los extractos ni en el núcleo.",
   "- `sancionPropuesta`: detecta si el informe o el hilo de correos contiene una PROPUESTA O RECOMENDACIÓN DE SANCIÓN del jefe/supervisor (frases como 'recomiendo amonestación', 'sugiero suspensión de 3 días', 'amerita el despido', 'propongo archivar el caso'). Clasifícala en `categoria`: \"amonestacion\" (amonestación escrita), \"suspension\" (suspensión sin goce — extrae los días en `diasSuspension`), \"despido\", o \"archivo\" (no sancionar / desestimar). Copia la frase exacta en `textoOriginal` y quién la propone en `propuestaPor`. Si NO hay una propuesta de sanción explícita, devuelve `detectada:false`, `categoria:null`, `diasSuspension:null` y `evaluacion.veredicto:null` — NUNCA inventes una sanción ni la deduzcas de la gravedad.",
   "- `sancionPropuesta.evaluacion`: SOLO si `detectada` es true, evalúa si la sanción propuesta por el jefe es proporcional y procedente ('va o no va'), fundándote en la gravedad de la falta, el principio de proporcionalidad y el sancionario/criterios de la 'Base normativa de Poderosa' de abajo. `veredicto`: \"adecuada\" (proporcional, procede), \"excesiva\" (demasiado severa para la falta), \"insuficiente\" (demasiado leve), \"requiere-ajuste\" (en línea pero ajustar, p.ej. los días), o \"prematura\" (aún no procede aplicar sanción — p.ej. falta el descargo del trabajador o vencer su plazo). En `comentario` explica el porqué en 1-2 frases citando la base normativa cuando aplique. Si el veredicto no es \"adecuada\", llena `sancionRecomendada` con la categoría/días más apropiados; si es adecuada, repite la misma. La decisión final es de RR.HH./Legal — esto es solo una recomendación.",
   "- Sé conservador: ante duda, baja la `confianza` y explica en `notas`.",
@@ -669,7 +699,7 @@ export async function analizarInforme(
 ): Promise<{ output: AnalisisInformeOutput; usage: ModelUsage }> {
   const system = await loadPrompt("system.md");
   const recorte = texto.length > 24000 ? texto.slice(0, 24000) + "\n\n[...texto truncado...]" : texto;
-  const variablePart = [normativaBlock(options.normativa), "## Texto del informe / hilo de correos", "```", recorte, "```"].join("\n");
+  const variablePart = [normativaBlock(options.normativa), nucleoRitBlock(), "## Texto del informe / hilo de correos", "```", recorte, "```"].join("\n");
 
   const { text, usage } = await chatJSON({
     model: MODEL_GENERATOR,

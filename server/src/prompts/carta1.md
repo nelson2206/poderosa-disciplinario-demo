@@ -10,7 +10,7 @@
 1. **Encabezado**: "Pataz, {fecha}" · destinatario ("Señor:", NOMBRE EN MAYÚSCULAS, cargo, "Presente.-").
 2. **REFERENCIA** (`referencia`): "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO".
 3. **De nuestra consideración:** (`encabezado`).
-4. **Introducción** (`introduccion`): "Mediante la presente carta, que le será notificada, y en atención al artículo 9° del Texto Único Ordenado del Decreto Legislativo N.° 728, Ley de Productividad y Competitividad Laboral (LPCL), COMPAÑÍA MINERA PODEROSA S.A. (en adelante, "PODEROSA" o "la empresa"), identificada con RUC N.° 20137025354 y con domicilio en la calle Coronel Gómez N.° 409, Urb. El Molino – Trujillo, Región La Libertad, cumple con hacer de su conocimiento que, en su condición de trabajador de PODEROSA, se ha advertido la presunta comisión de hechos que configurarían un incumplimiento de sus obligaciones de trabajo, motivo por el cual se da inicio al presente proceso disciplinario distinto al despido, conforme se detalla a continuación:".
+4. **Introducción** (`introduccion`) — usa la apertura de la Plantilla Medida Disciplinaria de Poderosa: "COMPAÑIA MINERA PODEROSA S.A., identificada con RUC Nº 20137025354 y con domicilio para estos efectos en la calle Coronel Gómez Nº 409, Urb. El Molino – Trujillo, Región La Libertad, debidamente representada por el Sr. Perci Alvarado Arteaga, identificado con DNI Nº 42594999, cumple con hacer de conocimiento que, en su condición de trabajador de PODEROSA, se ha advertido lo siguiente:". (El representante por defecto es Perci Alvarado Arteaga; usa el del caso si se provee.)
 5. **HECHOS DETECTADOS / IMPUTADOS** (`hechosDetectados`): narrativa detallada en **condicional**. Tiempo, lugar, modo, quién lo reportó (informe N°, fecha, área). Describe la conducta presunta y por qué configuraría incumplimiento. Varios párrafos.
 6. **TIPIFICACIÓN DE LAS FALTAS / NORMATIVA PRESUNTAMENTE VULNERADA** (`tipificacion`): "Los hechos anteriormente descritos involucrarían la comisión de faltas laborales conforme a nuestro Reglamento Interno de Trabajo (RIT) … en consecuencia, corresponde considerar las siguientes disposiciones:" seguido de **citas LITERALES** de los artículos. **PRIORIZA EL RIT**: cita el mayor número posible de artículos del **RIT** que apliquen (típicamente Art. 3°, 62°, 63°, 67°, 69°, 70°, 72°, 74°, 75°), y solo luego, si aplica, RISST/RISSO y Código de Ética. Todas las citas deben provenir de la "Base normativa de Poderosa" provista.
 7. **MEDIOS PROBATORIOS QUE SUSTENTAN LOS HECHOS DESCRITOS** (`mediosProbatorios`): array de strings (cada ítem = un medio: "Informe N.° 001 …, de fecha DD.MM.AAAA", capturas, registros, etc.).
@@ -28,7 +28,7 @@
   "cuerpo": {
     "referencia": "IMPUTACIÓN DE INCUMPLIMIENTO DE OBLIGACIONES DE TRABAJO",
     "encabezado": "De nuestra consideración:",
-    "introduccion": "Mediante la presente carta, que le será notificada, y en atención al artículo 9° del Texto Único Ordenado del Decreto Legislativo N.° 728 …",
+    "introduccion": "COMPAÑIA MINERA PODEROSA S.A., identificada con RUC Nº 20137025354 y con domicilio para estos efectos en la calle Coronel Gómez Nº 409, Urb. El Molino – Trujillo, Región La Libertad, debidamente representada por el Sr. Perci Alvarado Arteaga, identificado con DNI Nº 42594999, cumple con hacer de conocimiento que, en su condición de trabajador de PODEROSA, se ha advertido lo siguiente:",
     "hechosDetectados": "Con fecha … mediante el Informe N.° … el área de Recursos Humanos tomó conocimiento de presuntos hechos … usted no habría … configurándose un presunto incumplimiento.",
     "tipificacion": "Los hechos anteriormente descritos involucrarían … conforme al RIT: \"Artículo 62°.- …\" \"Artículo 63°.- … w) …\" \"Artículo 70°.- …\" … Reglamento Interno de Seguridad y Salud Ocupacional: \"Numeral 8.- …\" Código de Ética y Conducta: \"…\"",
     "mediosProbatorios": ["Informe N.° 001 – Solicitud de Evaluación de Medida Disciplinaria, de fecha 21.06.2026."],
@@ -36,7 +36,7 @@
     "plazoDescargos": "Por lo expuesto … se le otorga un plazo de tres (03) días naturales … para presentar por escrito los descargos … Agradecemos firmar la copia de la presente …",
     "despedida": "Atentamente,"
   },
-  "firma": { "nombre": "BENITES REBAZA DANTE ALEX", "cargo": "Superintendente de Recursos Humanos", "empresa": "Compañía Minera Poderosa S.A." },
+  "firma": { "nombre": "Perci Alvarado Arteaga", "cargo": "Superintendencia de Recursos Humanos", "empresa": "Compañía Minera Poderosa S.A." },
   "anexos": [],
   "warnings": [],
   "refused": false,
