@@ -262,6 +262,11 @@ button:focus-visible, .nav-item:focus-visible, .tab:focus-visible, .action-btn:f
 
 .preview-paper{background:var(--white);border:1px solid var(--gray-line);border-radius:10px;padding:46px 100px 30px 44px;font-family:"Times New Roman",Times,serif;color:#222;font-size:13px;line-height:1.55;min-height:680px;position:relative;box-shadow:var(--shadow-sm)}
 .preview-paper::before{content:"VISTA PREVIA · LIVE";position:absolute;top:12px;right:16px;font-family:var(--font-head);font-size:9px;color:var(--gold);letter-spacing:2px}
+/* Página A4 determinista para exportar a PDF (clon off-screen, sin badge ni media queries) */
+.pdf-page{background:#fff;font-family:"Times New Roman",Times,serif;color:#222;font-size:13px;line-height:1.55;box-sizing:border-box}
+.pdf-page p{margin:0 0 12px}
+.pdf-page ul{margin:4px 0 0 18px;padding:0}
+.pdf-page p,.pdf-page li,.pdf-page ul,.pdf-page img,.pdf-page div{page-break-inside:avoid}
 .letterhead{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);padding-bottom:14px;margin-bottom:22px}
 .letterhead img{width:130px;height:auto}
 .letterhead .lh-meta{text-align:right;font-family:var(--font-head);font-size:9px;color:var(--gray-muted);letter-spacing:1.5px}
@@ -3119,7 +3124,7 @@ function c2ExportName(ext){ return `Decision-final-${String((c2State&&c2State.ca
 document.getElementById("c2-export-pdf")?.addEventListener("click", () => {
   const node = document.getElementById("pp2-paper");
   if (!node || typeof html2pdf === "undefined") { alert("Genera la carta primero (o espera a que cargue html2pdf)."); return; }
-  html2pdf().set({ margin:[13,13,10,28], filename:c2ExportName("pdf"), image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} }).from(node).save();
+  podExportPdf(node, { filename: c2ExportName("pdf") }).catch(err => alert("No se pudo generar el PDF: " + err.message));
 });
 document.getElementById("c2-export-docx")?.addEventListener("click", () => {
   const node = document.getElementById("pp2-paper");
@@ -3186,6 +3191,38 @@ function renderTemplatesTable() {
 
 function escapeHtml(s) {
   return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// Exporta una hoja de carta a PDF de forma determinista: clona el nodo en un
+// contenedor off-screen de ancho A4 fijo (794px @96dpi) con los márgenes de la
+// plantilla como padding, sin el badge "VISTA PREVIA" ni las media queries del
+// preview. Así el PDF no depende del ancho de pantalla y nada se ve "cortado".
+async function podExportPdf(node, { filename, returnBlob } = {}) {
+  if (!node || typeof html2pdf === "undefined") throw new Error("html2pdf no disponible");
+  const A4_W = 794; // px a 96dpi (≈210mm)
+  const wrap = document.createElement("div");
+  wrap.style.cssText = `position:fixed;left:-10000px;top:0;width:${A4_W}px;background:#fff;z-index:-1;`;
+  const clone = node.cloneNode(true);
+  clone.classList.remove("preview-paper");      // evita ::before y media queries
+  clone.classList.add("pdf-page");
+  clone.removeAttribute("id");
+  // Márgenes de la plantilla Poderosa (twips→px): sup 48 · der 113 · inf 56 · izq 47
+  clone.style.cssText = `width:${A4_W}px;max-width:none;margin:0;padding:48px 113px 56px 47px;border:0;border-radius:0;box-shadow:none;min-height:0;`;
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+  const opt = {
+    margin: 0,
+    image: { type: "jpeg", quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, width: A4_W, windowWidth: A4_W, backgroundColor: "#ffffff" },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak: { mode: ["css", "legacy"] }
+  };
+  try {
+    if (returnBlob) return await html2pdf().set(opt).from(clone).outputPdf("blob");
+    await html2pdf().set({ ...opt, filename }).from(clone).save();
+  } finally {
+    wrap.remove();
+  }
 }
 
 // Renderiza la TIPIFICACIÓN agrupando las citas bajo los tres encabezados
@@ -4508,13 +4545,7 @@ document.getElementById("nc-export-pdf")?.addEventListener("click", () => {
     return;
   }
   const filename = `Carta-${ncState.cartaOutput.numeroCarta || ncState.caseId}.pdf`.replace(/[\/\\?]/g, "-");
-  html2pdf().set({
-    margin: [13, 13, 10, 28],
-    filename,
-    image: { type: "jpeg", quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  }).from(root).save();
+  podExportPdf(root, { filename }).catch(err => alert("No se pudo generar el PDF: " + err.message));
 });
 
 // ====== Exportar Word (HTML con MIME de Word — abre en Word/Pages/Docs) ======
@@ -4718,8 +4749,7 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
 
   // ---------- PDF del preview → base64 ----------
   async function previewPdfBase64(node){
-    const opt = { margin:[13,13,10,28], image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"} };
-    const blob = await html2pdf().set(opt).from(node).outputPdf("blob");
+    const blob = await podExportPdf(node, { returnBlob: true });
     const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(blob); });
     return base64;
   }
