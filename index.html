@@ -1770,14 +1770,7 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
                   <div class="field"><label for="nc-trab-nombre">Nombre completo</label><input id="nc-trab-nombre" type="text" placeholder="Juan Pérez Rojas"></div>
                   <input id="nc-trab-dni" type="hidden">
                   <div class="field"><label for="nc-trab-puesto">Puesto</label><input id="nc-trab-puesto" type="text" placeholder="Operador de flotación"></div>
-                  <div class="field"><label for="nc-trab-unidad">Unidad / mina <span style="font-weight:400;color:var(--gray-muted);font-size:11px;">(opcional)</span></label>
-                    <select id="nc-trab-unidad">
-                      <option value="">—</option>
-                      <option>Marañón</option>
-                      <option>Santa María</option>
-                      <option>Palca</option>
-                    </select>
-                  </div>
+                  <select id="nc-trab-unidad" style="display:none;"><option value="">—</option><option>Marañón</option><option>Santa María</option><option>Palca</option></select>
                   <div id="nc-trab-notas" style="display:none;margin-top:8px;padding:10px 12px;background:#FFF4E5;border:1px solid var(--orange);border-radius:8px;font-size:11.5px;color:var(--gray-text);"></div>
                 </div>
               </div>
@@ -1795,8 +1788,8 @@ body.role-select-mode { background: linear-gradient(135deg, var(--cream) 0%, var
           <div class="card">
             <div class="card-header"><h2>Descripción del incidente</h2></div>
             <div style="padding:18px 20px;">
-              <div class="field"><label for="nc-inc-fecha">Fecha y hora del hecho</label><input id="nc-inc-fecha" type="datetime-local"></div>
-              <div class="field"><label for="nc-inc-lugar">Lugar (área / unidad)</label><input id="nc-inc-lugar" type="text" placeholder="Polvorines · Unidad Santa María"></div>
+              <div class="field"><label for="nc-inc-fecha">Fecha del hecho</label><input id="nc-inc-fecha" type="date"></div>
+              <div class="field"><label for="nc-inc-lugar">Lugar / área / mina del incidente <span style="font-weight:400;color:var(--gray-muted);font-size:11px;">(opcional)</span></label><input id="nc-inc-lugar" type="text" placeholder="p.ej. Polvorines · Unidad Santa María"></div>
               <div class="field"><label for="nc-inc-conducta">Descripción libre del hecho</label>
                 <textarea id="nc-inc-conducta" rows="6" placeholder="Cuenta lo que pasó: qué ocurrió, fecha, lugar, quién lo observó, qué procedimiento se incumplió…"></textarea>
               </div>
@@ -4472,9 +4465,15 @@ document.getElementById("nc-guardar-btn")?.addEventListener("click", async () =>
 });
 
 // Inicialización del wizard al entrar a la vista
+function ncSetFechaEmisionHoy() {
+  const fe = document.getElementById("nc-fecha-emision");
+  if (fe && !fe.value) fe.value = new Date().toISOString().slice(0, 10); // fecha de emisión = hoy por defecto
+}
+ncSetFechaEmisionHoy();
 const ncObserver = new MutationObserver(() => {
   if (document.getElementById("view-nueva-carta")?.classList.contains("active")) {
     ncSetStep(ncState.step || 1);
+    ncSetFechaEmisionHoy();
     refreshTemplates?.(); // asegurar caché de plantillas al día
   }
 });
@@ -4720,7 +4719,7 @@ Gerencia de Recursos Humanos - Compania Minera Poderosa S.A.`;
     const t=a.trabajador||{};
     setVal("nc-trab-nombre", t.nombre); setVal("nc-trab-dni", t.dni); setVal("nc-trab-puesto", t.puesto); setSelect("nc-trab-unidad", t.unidad);
     const inc=a.incidente||{};
-    setVal("nc-inc-fecha", normDTL(inc.fechaHechoISO)); setVal("nc-inc-lugar", inc.lugar); setVal("nc-inc-conducta", inc.conducta);
+    setVal("nc-inc-fecha", normDate(inc.fechaHechoISO)); setVal("nc-inc-lugar", inc.lugar); setVal("nc-inc-conducta", inc.conducta);
     const io=a.informeOrigen||{};
     setVal("nc-inf-numero", io.numero); setVal("nc-inf-fecha", normDate(io.fechaISO)); setVal("nc-inf-area", io.area);
     const p=a.petsAplicable||{};
