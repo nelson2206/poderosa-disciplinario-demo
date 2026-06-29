@@ -585,7 +585,7 @@ export async function generateCarta2(
   const plantilla = await loadPrompt("carta2.md");
 
   const cacheablePrefix = [
-    `Redacta el borrador de la **DECISIÓN FINAL — ${input.tipo}** del procedimiento disciplinario para el siguiente caso, en el formato oficial de Poderosa de la plantilla. Reglas clave: (1) los hechos se **AFIRMAN/CONFIRMAN** (post-descargo) — NO uses condicional "habría"; (2) en \`analisisDescargo\` evalúa de verdad el descargo del trabajador: acepta lo que tenga mérito (puede atenuar la sanción o llevar a archivo) y **refuta** lo demás con fundamento en la base normativa; si no hay descargo y venció el plazo, indícalo y considera los hechos acreditados; (3) en \`tipificacion\` cita LITERALMENTE los artículos de la base normativa provista. Devuelve únicamente el JSON especificado en la plantilla (con las claves de \`cuerpo\`: referencia, encabezado, introduccion, hechosComprobados, analisisDescargo, tipificacion, decisionFinal, exhortacion, despedida).`,
+    `Redacta el borrador de la **DECISIÓN FINAL — ${input.tipo}** del procedimiento disciplinario para el siguiente caso, en el formato oficial de Poderosa de la plantilla. Reglas clave: (1) los hechos se **AFIRMAN/CONFIRMAN** (post-descargo) — NO uses condicional "habría"; (2) en \`analisisDescargo\` evalúa de verdad el descargo del trabajador: acepta lo que tenga mérito (puede atenuar la sanción o llevar a archivo) y **refuta** lo demás con fundamento en la base normativa; si no hay descargo y venció el plazo, indícalo y considera los hechos acreditados; (3) en \`tipificacion\` cita LITERALMENTE los artículos de la base normativa provista, **agrupados bajo los tres encabezados exactos y en este orden** (igual que la imputación): "Reglamento Interno de Trabajo (RIT):" (prioritario, incluyendo SIEMPRE el núcleo RIT obligatorio), "Reglamento Interno de Seguridad y Salud Ocupacional (RISSO):" y "Código de Ética y Conducta – Cumplimiento organizacional:" — incluye solo los cuerpos que apliquen. Devuelve únicamente el JSON especificado en la plantilla (con las claves de \`cuerpo\`: referencia, encabezado, introduccion, hechosComprobados, analisisDescargo, tipificacion, decisionFinal, exhortacion, despedida).`,
     "",
     "## Plantilla canónica (referencia mínima de Legal)",
     plantilla,
@@ -593,7 +593,7 @@ export async function generateCarta2(
     exemplaryBlock(options.exemplary),
   ].join("\n");
 
-  const variablePart = [normativaBlock(options.normativa), "## Datos del caso", "```json", JSON.stringify(input, null, 2), "```"].join("\n");
+  const variablePart = [normativaBlock(options.normativa), nucleoRitBlock(), "## Datos del caso", "```json", JSON.stringify(input, null, 2), "```"].join("\n");
 
   const { text, usage } = await chatJSON({
     model: MODEL_GENERATOR,
